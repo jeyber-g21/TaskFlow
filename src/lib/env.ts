@@ -12,14 +12,14 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url({
     message: "NEXT_PUBLIC_SUPABASE_URL debe ser la URL del proyecto de Supabase.",
   }),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, {
-    message: "Falta NEXT_PUBLIC_SUPABASE_ANON_KEY (Supabase → Project Settings → API).",
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1, {
+    message: "Falta NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (Supabase → Project Settings → API).",
   }),
 });
 
 const parsed = publicEnvSchema.safeParse({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 });
 
 if (!parsed.success) {

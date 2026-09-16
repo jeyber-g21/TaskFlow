@@ -92,9 +92,12 @@ src/
 - **Rutas protegidas por partida doble.** El proxy redirige a quien no tiene
   sesión, y el layout privado vuelve a comprobarlo. Si algún día cambia el
   `matcher` del proxy, las rutas no quedan expuestas por accidente.
-- **Registro pendiente de confirmar email.** Supabase exige confirmación por
-  defecto; el enlace del correo pasa por `/auth/callback`, que canjea el código
-  por una sesión.
+- **La confirmación por email está desactivada a propósito.** El correo que
+  incluye el plan gratuito de Supabase está pensado solo para pruebas y limita
+  los envíos por hora, así que en una demo pública alguien podría registrarse y
+  no recibir nunca el enlace. La ruta `/auth/callback` que canjea el código por
+  una sesión sigue implementada, porque es la misma que usa la recuperación de
+  contraseña y porque reactivar la confirmación es cambiar un interruptor.
 - **Sin tests todavía.** Llegan en la Fase 9: unitarios con Vitest y un
   recorrido end-to-end con Playwright sobre el flujo registro → proyecto → tarea.
 
