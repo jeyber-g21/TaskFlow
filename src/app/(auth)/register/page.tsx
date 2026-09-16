@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { RegisterForm } from "@/components/auth/register-form";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -20,14 +21,25 @@ export default function RegisterPage() {
       <CardHeader>
         <CardTitle>Crear cuenta</CardTitle>
         <CardDescription>
-          El registro con Supabase Auth llega en la siguiente fase del proyecto.
+          Empieza a organizar el trabajo de tu equipo.
         </CardDescription>
       </CardHeader>
+
       <CardContent>
-        <Button asChild variant="outline" className="w-full">
-          <Link href="/">Volver al inicio</Link>
-        </Button>
+        <RegisterForm />
       </CardContent>
+
+      <CardFooter className="justify-center">
+        <p className="text-sm text-muted-foreground">
+          ¿Ya tienes cuenta?{" "}
+          <Link
+            href="/login"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Entrar
+          </Link>
+        </p>
+      </CardFooter>
     </Card>
   );
 }

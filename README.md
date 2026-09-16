@@ -3,8 +3,8 @@
 Gestor de tareas para equipos pequeños: proyectos, tablero Kanban, roles y
 permisos aplicados en la propia base de datos.
 
-> **Estado**: en construcción. Fase 1 de 9 completada (base del proyecto,
-> landing y despliegue continuo). Ver [roadmap](#roadmap).
+> **Estado**: en construcción. Fases 1 y 2 de 9 completadas (base del proyecto,
+> despliegue continuo y autenticación). Ver [roadmap](#roadmap).
 
 - **Demo**: <https://taskflow-jg.vercel.app>
 - **Blueprint del proyecto**: [`docs/proyecto-taskflow-portafolio.md`](docs/proyecto-taskflow-portafolio.md)
@@ -45,8 +45,9 @@ npm run dev
 
 La app queda en <http://localhost:3000>.
 
-> Las variables de entorno aún no son necesarias: la Fase 1 es estática. Harán
-> falta a partir de la Fase 2 (autenticación).
+> Necesitas un proyecto de Supabase (tier gratuito). Las claves están en
+> *Project Settings → API*. Sin ellas la app no arranca: la validación de
+> entorno falla a propósito al inicio, en vez de romperse más tarde.
 
 ### Scripts
 
@@ -63,12 +64,20 @@ La app queda en <http://localhost:3000>.
 src/
 ├── app/
 │   ├── (marketing)/      # landing pública
-│   ├── (auth)/           # login y registro
+│   ├── (auth)/           # login, registro y server actions de sesión
+│   ├── (app)/            # zona privada: requiere sesión
+│   ├── auth/callback/    # canjea el enlace de confirmación por una sesión
 │   └── layout.tsx        # fuentes, metadatos y shell de la app
 ├── components/
 │   ├── ui/               # componentes de shadcn/ui
+│   ├── auth/             # formularios de acceso
+│   ├── app/              # piezas de la zona privada
 │   └── marketing/        # cabecera, pie y piezas de la landing
-└── lib/                  # utilidades compartidas
+├── lib/
+│   ├── supabase/         # clientes de navegador, servidor y proxy
+│   ├── validations/      # esquemas Zod compartidos
+│   └── env.ts            # validación de variables de entorno
+└── proxy.ts              # refresco de sesión y guardia de rutas
 ```
 
 ## Decisiones y limitaciones conocidas
@@ -78,15 +87,21 @@ src/
   UI tampoco podrá leer datos de otro equipo.
 - **Validación duplicada a propósito.** El mismo esquema de Zod corre en el
   cliente (respuesta inmediata) y en el servidor (la que de verdad protege).
-- **`/login` y `/register` son provisionales.** Muestran un aviso hasta que la
-  Fase 2 conecte Supabase Auth.
+- **La sesión se valida con `getUser()`, no con `getSession()`.** El segundo
+  lee la cookie sin comprobarla contra Supabase, así que es falsificable.
+- **Rutas protegidas por partida doble.** El proxy redirige a quien no tiene
+  sesión, y el layout privado vuelve a comprobarlo. Si algún día cambia el
+  `matcher` del proxy, las rutas no quedan expuestas por accidente.
+- **Registro pendiente de confirmar email.** Supabase exige confirmación por
+  defecto; el enlace del correo pasa por `/auth/callback`, que canjea el código
+  por una sesión.
 - **Sin tests todavía.** Llegan en la Fase 9: unitarios con Vitest y un
   recorrido end-to-end con Playwright sobre el flujo registro → proyecto → tarea.
 
 ## Roadmap
 
 - [x] **1. Base** — Next.js + TypeScript + Tailwind + shadcn/ui, landing y deploy inicial
-- [ ] **2. Auth** — registro, login, logout y rutas protegidas con Supabase
+- [x] **2. Auth** — registro, login, logout y rutas protegidas con Supabase
 - [ ] **3. Datos** — tablas, políticas RLS y Drizzle conectado
 - [ ] **4. Equipos y proyectos** — workspace al registrarse y CRUD de proyectos
 - [ ] **5. Tareas** — CRUD de tareas y vista Kanban
