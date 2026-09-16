@@ -6,7 +6,7 @@ permisos aplicados en la propia base de datos.
 > **Estado**: en construcción. Fase 1 de 9 completada (base del proyecto,
 > landing y despliegue continuo). Ver [roadmap](#roadmap).
 
-- **Demo**: _(pendiente de publicar)_
+- **Demo**: <https://taskflow-jg.vercel.app>
 - **Blueprint del proyecto**: [`docs/proyecto-taskflow-portafolio.md`](docs/proyecto-taskflow-portafolio.md)
 
 ---
@@ -36,8 +36,8 @@ tablero de tres columnas con responsable y prioridad por tarea.
 Requisitos: Node.js 20 o superior.
 
 ```bash
-git clone <url-del-repo>
-cd taskflow
+git clone https://github.com/jeyber-g21/TaskFlow.git
+cd TaskFlow
 npm install
 cp .env.example .env.local   # rellena los valores de Supabase
 npm run dev
