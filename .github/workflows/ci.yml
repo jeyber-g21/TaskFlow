@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Si llegan dos pushes seguidos, cancela el anterior en lugar de gastar
+# minutos comprobando un commit que ya nadie va a mirar.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  calidad:
+    name: Lint, tipos y tests unitarios
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Comprobacion de tipos
+        run: npm run typecheck
+
+      - name: Tests unitarios
+        run: npm test
+
+  integracion:
+    name: RLS y recorridos completos
+    runs-on: ubuntu-latest
+    needs: calidad
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Sin secretos configurados estos tests no pueden correr. Se avisa y se
+      # sale bien: un repositorio recien clonado no deberia fallar por esto.
+      - name: Comprobar credenciales
+        id: credenciales
+        run: |
+          if [ -n "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -n "$DIRECT_URL" ]; then
+            echo "disponibles=si" >> "$GITHUB_OUTPUT"
+          else
+            echo "disponibles=no" >> "$GITHUB_OUTPUT"
+            echo "::notice::Sin secretos de Supabase: se omiten los tests de integracion."
+          fi
+
+      - name: Tests de RLS
+        if: steps.credenciales.outputs.disponibles == 'si'
+        run: npm run test:rls
+
+      - name: Instalar navegador
+        if: steps.credenciales.outputs.disponibles == 'si'
+        run: npx playwright install --with-deps chromium
+
+      - name: Recorridos completos
+        if: steps.credenciales.outputs.disponibles == 'si'
+        run: npm run test:e2e
+
+      - name: Guardar informe si algo falla
+        if: failure() && steps.credenciales.outputs.disponibles == 'si'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

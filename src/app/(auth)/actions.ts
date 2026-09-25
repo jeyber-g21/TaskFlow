@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 import { createClient } from "@/lib/supabase/server";
+import { traducirErrorDeAuth } from "@/lib/supabase/errores";
 import {
   loginSchema,
   registerSchema,
@@ -16,32 +17,6 @@ import {
 export type AuthResult =
   | { status: "error"; message: string }
   | { status: "success"; message: string };
-
-/**
- * Traduce los errores de Supabase, que llegan en inglés y a veces son
- * demasiado técnicos para enseñárselos tal cual a quien usa la app.
- */
-function traducirError(mensaje: string): string {
-  const m = mensaje.toLowerCase();
-
-  if (m.includes("invalid login credentials")) {
-    return "El email o la contraseña no son correctos.";
-  }
-  if (m.includes("email not confirmed")) {
-    return "Aún no has confirmado tu email. Revisa tu bandeja de entrada.";
-  }
-  if (m.includes("user already registered") || m.includes("already been registered")) {
-    return "Ya existe una cuenta con ese email. Prueba a iniciar sesión.";
-  }
-  if (m.includes("rate limit") || m.includes("too many requests")) {
-    return "Demasiados intentos seguidos. Espera un minuto y vuelve a probar.";
-  }
-  if (m.includes("password")) {
-    return "La contraseña no cumple los requisitos mínimos.";
-  }
-
-  return "No hemos podido completar la operación. Inténtalo de nuevo.";
-}
 
 export async function signIn(
   input: LoginInput,
@@ -60,7 +35,7 @@ export async function signIn(
   });
 
   if (error) {
-    return { status: "error", message: traducirError(error.message) };
+    return { status: "error", message: traducirErrorDeAuth(error.message) };
   }
 
   revalidatePath("/", "layout");
@@ -90,7 +65,7 @@ export async function signUp(input: RegisterInput): Promise<AuthResult> {
   });
 
   if (error) {
-    return { status: "error", message: traducirError(error.message) };
+    return { status: "error", message: traducirErrorDeAuth(error.message) };
   }
 
   // Con la confirmación por email activada, Supabase no abre sesión todavía.

@@ -1,0 +1,40 @@
+name: Mantener Supabase activo
+
+# El plan gratuito de Supabase pausa los proyectos tras unos dias sin
+# actividad, y entonces la demo deja de funcionar sin previo aviso. Una
+# peticion cada tres dias basta para que eso no ocurra.
+on:
+  schedule:
+    - cron: "0 9 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Despertar el proyecto
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consultar la API de Supabase
+        env:
+          URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "::warning::Faltan los secretos de Supabase; no se puede hacer ping."
+            exit 0
+          fi
+
+          codigo=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: $KEY" \
+            "$URL/auth/v1/settings")
+
+          echo "Respuesta de Supabase: $codigo"
+          if [ "$codigo" != "200" ]; then
+            echo "::error::Supabase respondio $codigo"
+            exit 1
+          fi
+
+      - name: Comprobar que la demo sigue en pie
+        run: |
+          codigo=$(curl -s -o /dev/null -w "%{http_code}" https://taskflow-jg.vercel.app/)
+          echo "Respuesta de la demo: $codigo"
+          [ "$codigo" = "200" ]

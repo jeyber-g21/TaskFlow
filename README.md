@@ -3,9 +3,8 @@
 Gestor de tareas para equipos pequeños: proyectos, tablero Kanban, roles y
 permisos aplicados en la propia base de datos.
 
-> **Estado**: en construcción. Fases 1 a 3 de 9 completadas (base del proyecto,
-> despliegue continuo, autenticación y modelo de datos con RLS).
-> Ver [roadmap](#roadmap).
+> **Estado**: en construcción. Base, autenticación, modelo de datos con RLS y
+> batería de tests con integración continua. Ver [roadmap](#roadmap).
 
 - **Demo**: <https://taskflow-jg.vercel.app>
 - **Blueprint del proyecto**: [`docs/proyecto-taskflow-portafolio.md`](docs/proyecto-taskflow-portafolio.md)
@@ -61,6 +60,10 @@ La app queda en <http://localhost:3000>.
 | `npm run db:generate` | Genera una migración a partir del esquema |
 | `npm run db:migrate` | Aplica las migraciones pendientes |
 | `npm run db:studio` | Abre Drizzle Studio para inspeccionar los datos |
+| `npm test` | Tests unitarios (rápidos, sin dependencias externas) |
+| `npm run test:rls` | Tests de permisos contra Supabase |
+| `npm run test:e2e` | Recorridos completos en un navegador real |
+| `npm run typecheck` | Comprobación de tipos |
 
 ## Estructura
 
@@ -119,8 +122,45 @@ drizzle/                  # migraciones SQL versionadas
   no recibir nunca el enlace. La ruta `/auth/callback` que canjea el código por
   una sesión sigue implementada, porque es la misma que usa la recuperación de
   contraseña y porque reactivar la confirmación es cambiar un interruptor.
-- **Sin tests todavía.** Llegan en la Fase 9: unitarios con Vitest y un
-  recorrido end-to-end con Playwright sobre el flujo registro → proyecto → tarea.
+- **Los tests se escriben con cada fase, no al final.** Dejarlos para el cierre
+  suele acabar en dos pruebas simbólicas escritas con prisa.
+
+## Tests
+
+Tres niveles, separados a propósito por lo que cuesta ejecutarlos:
+
+| Qué | Cuántos | Qué comprueban |
+|-----|---------|----------------|
+| **Unitarios** (Vitest) | 21 | Esquemas de validación y traducción de errores. Segundos, sin red. |
+| **Permisos** (Vitest) | 16 | RLS contra Supabase real: dos usuarios, uno intenta leer y escribir en el equipo del otro. |
+| **Recorridos** (Playwright) | 9 | Registro, login, logout y rutas protegidas en un navegador real. |
+
+Los de permisos son el corazón de la batería. Registran dos usuarios, uno monta
+su equipo con proyecto y tarea, y el otro intenta leerlo —incluso pidiendo la
+tarea por su `id`—, modificarlo, borrarlo y añadirse al equipo. Postgres rechaza
+todo con el código `42501`. Al terminar, los usuarios de prueba se borran solos.
+
+Los unitarios corren sin configuración. Los otros dos necesitan las variables de
+entorno; si faltan, los de permisos se saltan en lugar de fallar.
+
+### Integración continua
+
+Cada push ejecuta lint, tipos y unitarios. Si el repositorio tiene configurados
+los secretos de Supabase, corre además los de permisos y los recorridos, estos
+últimos contra el build de producción y no contra el servidor de desarrollo.
+
+Un segundo workflow despierta Supabase cada tres días: el plan gratuito pausa
+los proyectos inactivos, y sin eso la demo se cae sola pasada una semana.
+
+### Si Vitest falla con "Cannot find native binding"
+
+Es un [fallo conocido de npm](https://github.com/npm/cli/issues/4828) con las
+dependencias nativas opcionales: aparece tras instalar cualquier paquete nuevo.
+Se arregla reinstalando desde cero:
+
+```bash
+rm -rf node_modules package-lock.json && npm install
+```
 
 ## Roadmap
 
@@ -132,7 +172,7 @@ drizzle/                  # migraciones SQL versionadas
 - [ ] **6. Roles e invitaciones** — permisos de admin y miembro
 - [ ] **7. Pulido** — estados vacíos, carga, errores, responsive y modo oscuro
 - [ ] **8. Filtros y búsqueda** — por responsable, prioridad y texto
-- [ ] **9. Tests y README final**
+- [x] **9. Tests** — unitarios, permisos y recorridos completos, más CI en GitHub Actions
 
 ---
 
