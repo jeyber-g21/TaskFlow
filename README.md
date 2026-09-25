@@ -3,8 +3,9 @@
 Gestor de tareas para equipos pequeños: proyectos, tablero Kanban, roles y
 permisos aplicados en la propia base de datos.
 
-> **Estado**: en construcción. Fases 1 y 2 de 9 completadas (base del proyecto,
-> despliegue continuo y autenticación). Ver [roadmap](#roadmap).
+> **Estado**: en construcción. Fases 1 a 3 de 9 completadas (base del proyecto,
+> despliegue continuo, autenticación y modelo de datos con RLS).
+> Ver [roadmap](#roadmap).
 
 - **Demo**: <https://taskflow-jg.vercel.app>
 - **Blueprint del proyecto**: [`docs/proyecto-taskflow-portafolio.md`](docs/proyecto-taskflow-portafolio.md)
@@ -57,6 +58,9 @@ La app queda en <http://localhost:3000>.
 | `npm run build` | Build de producción |
 | `npm run start` | Sirve el build de producción |
 | `npm run lint` | ESLint |
+| `npm run db:generate` | Genera una migración a partir del esquema |
+| `npm run db:migrate` | Aplica las migraciones pendientes |
+| `npm run db:studio` | Abre Drizzle Studio para inspeccionar los datos |
 
 ## Estructura
 
@@ -75,16 +79,33 @@ src/
 │   └── marketing/        # cabecera, pie y piezas de la landing
 ├── lib/
 │   ├── supabase/         # clientes de navegador, servidor y proxy
+│   ├── db/schema.ts      # esquema de la base de datos (Drizzle)
 │   ├── validations/      # esquemas Zod compartidos
 │   └── env.ts            # validación de variables de entorno
 └── proxy.ts              # refresco de sesión y guardia de rutas
+
+drizzle/                  # migraciones SQL versionadas
 ```
 
 ## Decisiones y limitaciones conocidas
 
 - **Los permisos viven en la base de datos.** Esconder botones en el cliente no
-  es seguridad. Cada tabla llevará RLS, de modo que una petición que se salte la
-  UI tampoco podrá leer datos de otro equipo.
+  es seguridad. Las cinco tablas tienen RLS, de modo que una petición que se
+  salte la interfaz tampoco puede leer datos de otro equipo.
+- **Drizzle define el esquema; Supabase ejecuta las consultas.** Drizzle se
+  conecta como `postgres`, un rol que ignora las políticas RLS: si la aplicación
+  consultara por ahí, el RLS sería decorativo. Así que Drizzle aporta lo que
+  mejor hace —esquema tipado y migraciones versionadas en el repo— y las
+  consultas van por el cliente de Supabase, que usa el rol `authenticated` y sí
+  pasa por las políticas. Los tipos de la aplicación se siguen derivando del
+  esquema de Drizzle.
+- **Las funciones de permisos son `SECURITY DEFINER`.** Una política sobre
+  `memberships` que consulte `memberships` provoca recursión infinita en
+  Postgres. Estas funciones leen la tabla sin reactivar RLS y cortan el ciclo.
+- **Crear un equipo es una función, no un `INSERT`.** `create_team()` crea el
+  equipo y su primer administrador en una sola operación: un equipo recién
+  insertado no tendría miembros, y entonces ninguna política podría decidir
+  quién tiene derecho a añadir el primero.
 - **Validación duplicada a propósito.** El mismo esquema de Zod corre en el
   cliente (respuesta inmediata) y en el servidor (la que de verdad protege).
 - **La sesión se valida con `getUser()`, no con `getSession()`.** El segundo
@@ -105,7 +126,7 @@ src/
 
 - [x] **1. Base** — Next.js + TypeScript + Tailwind + shadcn/ui, landing y deploy inicial
 - [x] **2. Auth** — registro, login, logout y rutas protegidas con Supabase
-- [ ] **3. Datos** — tablas, políticas RLS y Drizzle conectado
+- [x] **3. Datos** — tablas, políticas RLS y Drizzle conectado
 - [ ] **4. Equipos y proyectos** — workspace al registrarse y CRUD de proyectos
 - [ ] **5. Tareas** — CRUD de tareas y vista Kanban
 - [ ] **6. Roles e invitaciones** — permisos de admin y miembro
