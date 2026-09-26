@@ -1,42 +1,82 @@
 import type { Metadata } from "next";
-import { FolderPlus } from "lucide-react";
+import { redirect } from "next/navigation";
+import { FolderPlus, Plus } from "lucide-react";
 
+import { ProjectCard } from "@/components/workspace/project-card";
+import { ProjectDialog } from "@/components/workspace/project-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/server";
+import { obtenerEquipoActual, obtenerProyectos } from "@/lib/queries/workspace";
 
 export const metadata: Metadata = {
   title: "Panel",
 };
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const equipo = await obtenerEquipoActual();
 
-  const nombre =
-    (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ??
-    "de nuevo";
+  // Sin equipo no hay nada que enseñar: primero hay que crearlo.
+  if (!equipo) {
+    redirect("/bienvenida");
+  }
+
+  const proyectos = await obtenerProyectos(equipo.id);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Hola, {nombre}</h1>
-      <p className="mt-2 text-muted-foreground">
-        Aquí verás los proyectos de tu equipo.
-      </p>
-
-      <Card className="mt-8">
-        <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
-          <span className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <FolderPlus className="size-5" aria-hidden />
-          </span>
-          <p className="font-medium">Aún no hay proyectos</p>
-          <p className="max-w-sm text-sm text-pretty text-muted-foreground">
-            Los equipos y los proyectos llegan en la siguiente fase. Por ahora,
-            que estés viendo esta pantalla significa que tu sesión funciona.
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {equipo.name}
+            </h1>
+            <Badge variant={equipo.rol === "admin" ? "default" : "secondary"}>
+              {equipo.rol === "admin" ? "Admin" : "Miembro"}
+            </Badge>
+          </div>
+          <p className="mt-1 text-muted-foreground">
+            {proyectos.length === 0
+              ? "Aún no hay proyectos en este equipo."
+              : `${proyectos.length} ${proyectos.length === 1 ? "proyecto" : "proyectos"} en marcha.`}
           </p>
-        </CardContent>
-      </Card>
+        </div>
+
+        <ProjectDialog>
+          <Button>
+            <Plus />
+            Nuevo proyecto
+          </Button>
+        </ProjectDialog>
+      </div>
+
+      {proyectos.length === 0 ? (
+        <Card className="mt-8">
+          <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+            <span className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <FolderPlus className="size-5" aria-hidden />
+            </span>
+            <p className="font-medium">Crea tu primer proyecto</p>
+            <p className="max-w-sm text-sm text-pretty text-muted-foreground">
+              Un proyecto agrupa el trabajo de una iniciativa y tiene su propio
+              tablero de tareas.
+            </p>
+
+            <ProjectDialog>
+              <Button className="mt-2">
+                <Plus />
+                Nuevo proyecto
+              </Button>
+            </ProjectDialog>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {proyectos.map((proyecto) => (
+            <ProjectCard key={proyecto.id} proyecto={proyecto} rol={equipo.rol} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

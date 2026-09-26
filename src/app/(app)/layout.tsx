@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { Toaster } from "@/components/ui/sonner";
 import { UserMenu } from "@/components/app/user-menu";
 import { Logo } from "@/components/marketing/logo";
 import { createClient } from "@/lib/supabase/server";
@@ -37,6 +38,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       </header>
 
       <main className="flex-1">{children}</main>
+
+      {/* Los avisos de "creado" o "eliminado" aparecen aquí. */}
+      <Toaster position="bottom-right" />
     </>
   );
 }
