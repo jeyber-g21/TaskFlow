@@ -52,18 +52,23 @@ const COLUMNS: PreviewColumn[] = [
   },
 ];
 
+/**
+ * El tablero del hero está hecho en HTML y no es una captura: se ve nítido a
+ * cualquier tamaño, se adapta al modo oscuro y no pesa nada.
+ */
 export function BoardPreview() {
   return (
     <div
       role="img"
       aria-label="Vista previa del tablero Kanban de TaskFlow con las columnas Por hacer, En progreso y Hecho"
-      className="rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4"
+      className="rounded-xl border border-border bg-card p-3 shadow-2xl shadow-primary/5 sm:p-4"
     >
+      {/* Barra superior, como la de una ventana: sitúa lo que se está viendo. */}
       <div className="mb-3 flex items-center gap-1.5 px-1">
         <span className="size-2.5 rounded-full bg-red-400/70" />
         <span className="size-2.5 rounded-full bg-amber-400/70" />
         <span className="size-2.5 rounded-full bg-emerald-400/70" />
-        <span className="ml-3 text-xs text-muted-foreground">
+        <span className="ml-3 truncate text-xs text-muted-foreground">
           Rediseño del onboarding · Equipo Producto
         </span>
       </div>
@@ -85,7 +90,9 @@ export function BoardPreview() {
                   key={task.title}
                   className="rounded-md border border-border/70 bg-background p-2.5 shadow-xs"
                 >
-                  <p className="text-xs leading-snug font-medium">{task.title}</p>
+                  <p className="text-xs leading-snug font-medium text-pretty">
+                    {task.title}
+                  </p>
                   <div className="mt-2 flex items-center justify-between">
                     <span
                       className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${PRIORITY_STYLES[task.priority]}`}

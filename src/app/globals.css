@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -24,6 +24,8 @@
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
+  --color-acento: var(--acento);
+  --color-acento-2: var(--acento-2);
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
@@ -73,6 +75,8 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
+  --acento: oklch(0.58 0.24 310);
+  --acento-2: oklch(0.72 0.14 215);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.511 0.262 276.966);
@@ -107,6 +111,8 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
+  --acento: oklch(0.68 0.21 310);
+  --acento-2: oklch(0.78 0.13 215);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.585 0.233 277.117);
@@ -127,4 +133,144 @@
   html {
     @apply font-sans;
   }
+}
+/* ---------------------------------------------------------------------------
+   Animaciones de entrada
+
+   Se usan animaciones guiadas por scroll de CSS en lugar de JavaScript: si el
+   navegador no las soporta, el contenido aparece sin más, que es justo lo que
+   debe pasar. Con un IntersectionObserver, un fallo de JS dejaría media
+   página invisible.
+   --------------------------------------------------------------------------- */
+
+@keyframes entrada {
+  from {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Aparece al cargar: para lo que ya se ve sin bajar. */
+  .aparece {
+    animation: entrada 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .aparece-1 { animation-delay: 0.08s; }
+  .aparece-2 { animation-delay: 0.16s; }
+  .aparece-3 { animation-delay: 0.24s; }
+  .aparece-4 { animation-delay: 0.32s; }
+
+  /* Aparece al llegar con el scroll. */
+  @supports (animation-timeline: view()) {
+    .revela {
+      animation: entrada linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 25%;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Superficies con color
+
+   Los degradados van aquí y no en clases utilitarias porque necesitan
+   `color-mix`, que permite teñir usando los mismos tokens del tema: así el
+   modo oscuro se resuelve solo, sin duplicar valores.
+   --------------------------------------------------------------------------- */
+
+.fondo-hero {
+  background:
+    radial-gradient(
+      58% 55% at 12% -5%,
+      color-mix(in oklch, var(--primary) 22%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      50% 50% at 88% 5%,
+      color-mix(in oklch, var(--acento) 18%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      45% 60% at 60% 100%,
+      color-mix(in oklch, var(--acento-2) 14%, transparent),
+      transparent 70%
+    );
+}
+
+/* Franja tenue para alternar secciones sin recurrir al gris de siempre. */
+.seccion-tintada {
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--primary) 4%, transparent),
+      transparent 40%,
+      color-mix(in oklch, var(--acento) 5%, transparent)
+    );
+}
+
+.texto-degradado {
+  background: linear-gradient(
+    100deg,
+    var(--primary),
+    color-mix(in oklch, var(--acento) 85%, var(--primary))
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* El borde se enciende al pasar por encima: una pista de que la tarjeta es
+   un elemento vivo, sin llegar a pedir un clic que no lleva a ninguna parte. */
+.tarjeta-viva {
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.tarjeta-viva:hover {
+  border-color: color-mix(in oklch, var(--primary) 35%, var(--border));
+  box-shadow: 0 8px 30px -12px color-mix(in oklch, var(--primary) 45%, transparent);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-viva:hover {
+    transform: none;
+  }
+}
+
+/* Barra superior: un velo de color muy diluido sobre el fondo translúcido,
+   rematado por una línea degradada en lugar del borde plano de siempre. */
+/* Sin `position` propia: la utilidad `sticky` del elemento ya hace de ancla
+   para el ::after, y declararla aquí la sobrescribiría. */
+.barra-superior {
+  background:
+    linear-gradient(
+      to right,
+      color-mix(in oklch, var(--primary) 8%, transparent),
+      color-mix(in oklch, var(--acento) 7%, transparent) 55%,
+      color-mix(in oklch, var(--acento-2) 8%, transparent)
+    ),
+    color-mix(in oklch, var(--background) 82%, transparent);
+}
+
+.barra-superior::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in oklch, var(--primary) 55%, transparent) 25%,
+    color-mix(in oklch, var(--acento) 55%, transparent) 60%,
+    color-mix(in oklch, var(--acento-2) 45%, transparent) 85%,
+    transparent
+  );
 }

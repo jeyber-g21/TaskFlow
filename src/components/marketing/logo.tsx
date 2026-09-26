@@ -2,7 +2,7 @@ export function Logo({ className }: { className?: string }) {
   return (
     <span
       aria-hidden
-      className={`flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground ${className ?? ""}`}
+      className={`flex size-7 items-center justify-center rounded-md bg-linear-to-br from-primary to-acento text-primary-foreground shadow-sm shadow-primary/30 ${className ?? ""}`}
     >
       <svg
         viewBox="0 0 24 24"
