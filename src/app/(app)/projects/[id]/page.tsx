@@ -1,9 +1,12 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, KanbanSquare } from "lucide-react";
+import { notFound, redirect } from "next/navigation";
+import { ArrowLeft, Plus } from "lucide-react";
 
+import { TaskBoard } from "@/components/tasks/task-board";
+import { TaskDialog } from "@/components/tasks/task-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { obtenerMiembros, obtenerTareas } from "@/lib/queries/tasks";
+import { obtenerEquipoActual } from "@/lib/queries/workspace";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({ params }: PageProps<"/projects/[id]">) {
@@ -21,6 +24,11 @@ export async function generateMetadata({ params }: PageProps<"/projects/[id]">) 
 export default async function ProyectoPage({ params }: PageProps<"/projects/[id]">) {
   const { id } = await params;
 
+  const equipo = await obtenerEquipoActual();
+  if (!equipo) {
+    redirect("/bienvenida");
+  }
+
   const supabase = await createClient();
   const { data: proyecto } = await supabase
     .from("projects")
@@ -35,8 +43,15 @@ export default async function ProyectoPage({ params }: PageProps<"/projects/[id]
     notFound();
   }
 
+  const [tareas, miembros] = await Promise.all([
+    obtenerTareas(proyecto.id),
+    obtenerMiembros(equipo.id),
+  ]);
+
+  const hechas = tareas.filter((t) => t.estado === "done").length;
+
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
       <Button asChild variant="ghost" size="sm" className="-ml-2 mb-4">
         <Link href="/dashboard">
           <ArrowLeft />
@@ -44,25 +59,51 @@ export default async function ProyectoPage({ params }: PageProps<"/projects/[id]
         </Link>
       </Button>
 
-      <h1 className="text-2xl font-semibold tracking-tight">{proyecto.name}</h1>
-      {proyecto.description && (
-        <p className="mt-2 max-w-2xl text-pretty text-muted-foreground">
-          {proyecto.description}
-        </p>
-      )}
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-balance">
+            {proyecto.name}
+          </h1>
 
-      <Card className="mt-8">
-        <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
-          <span className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <KanbanSquare className="size-5" aria-hidden />
-          </span>
-          <p className="font-medium">El tablero llega en la siguiente fase</p>
-          <p className="max-w-sm text-sm text-pretty text-muted-foreground">
-            Aquí irán las tres columnas con las tareas del proyecto, con
-            responsable y prioridad.
-          </p>
-        </CardContent>
-      </Card>
+          {proyecto.description && (
+            <p className="mt-2 max-w-2xl text-pretty text-muted-foreground">
+              {proyecto.description}
+            </p>
+          )}
+
+          {tareas.length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Todavía no hay tareas.
+            </p>
+          ) : (
+            <dl className="mt-4 flex gap-8">
+              <div>
+                <dt className="text-xs text-muted-foreground">Tareas creadas</dt>
+                <dd className="text-2xl font-semibold tabular-nums">
+                  {tareas.length}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Completadas</dt>
+                <dd className="text-2xl font-semibold tabular-nums">{hechas}</dd>
+              </div>
+            </dl>
+          )}
+        </div>
+
+        <TaskDialog proyectoId={proyecto.id} miembros={miembros}>
+          <Button>
+            <Plus />
+            Nueva tarea
+          </Button>
+        </TaskDialog>
+      </div>
+
+      <TaskBoard
+        proyectoId={proyecto.id}
+        tareas={tareas}
+        miembros={miembros}
+      />
     </div>
   );
 }

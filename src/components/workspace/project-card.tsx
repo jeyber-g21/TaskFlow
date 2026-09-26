@@ -118,10 +118,21 @@ export function ProjectCard({
             <p className="text-sm text-muted-foreground">Sin tareas todavía</p>
           ) : (
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">
-                  {proyecto.tareasHechas} de {proyecto.tareas} hechas
-                </span>
+              <dl className="space-y-1 text-sm">
+                <div className="flex items-center justify-between">
+                  <dt className="text-muted-foreground">Tareas creadas</dt>
+                  <dd className="font-medium tabular-nums">{proyecto.tareas}</dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-muted-foreground">Completadas</dt>
+                  <dd className="font-medium tabular-nums">
+                    {proyecto.tareasHechas}
+                  </dd>
+                </div>
+              </dl>
+
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Progreso</span>
                 <span className="font-medium tabular-nums">{progreso}%</span>
               </div>
 

@@ -1,11 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import {
-  cerrarSesion,
-  crearEquipo,
-  registrarse,
-  registrarseConEquipo,
-} from "./utilidades";
+import { cerrarSesion, registrarse, registrarseConEquipo } from "./utilidades";
 
 /**
  * El recorrido de alguien que entra por primera vez: se registra, crea su

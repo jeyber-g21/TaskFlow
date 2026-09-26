@@ -62,3 +62,31 @@ export async function cerrarSesion(page: Page) {
   // después de la siguiente orden y pisa la URL que se va a comprobar.
   await expect(page).toHaveURL(/\/login$/);
 }
+
+/** Crea un proyecto desde el panel y entra en su tablero. */
+export async function crearProyectoYAbrir(page: Page, nombre: string) {
+  await page.getByRole("button", { name: "Nuevo proyecto" }).first().click();
+  await page.getByLabel("Nombre").fill(nombre);
+  await page.getByRole("button", { name: "Crear proyecto" }).click();
+  await expect(page.getByText("Proyecto creado")).toBeVisible();
+
+  await page.getByRole("link", { name: nombre }).click();
+  await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
+}
+
+/** Rellena el diálogo de tarea que ya esté abierto. */
+export async function rellenarTarea(
+  page: Page,
+  datos: { titulo: string; descripcion?: string; prioridad?: string },
+) {
+  await page.getByLabel("Título").fill(datos.titulo);
+
+  if (datos.descripcion) {
+    await page.getByLabel(/Descripción/).fill(datos.descripcion);
+  }
+
+  if (datos.prioridad) {
+    await page.getByLabel("Prioridad").click();
+    await page.getByRole("option", { name: datos.prioridad }).click();
+  }
+}

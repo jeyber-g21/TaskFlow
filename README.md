@@ -75,7 +75,7 @@ src/
 │   ├── (app)/            # zona privada: requiere sesión
 │   │   ├── bienvenida/   # creación del primer equipo
 │   │   ├── dashboard/    # proyectos del equipo
-│   │   └── projects/[id]/
+│   │   └── projects/[id]/  # tablero Kanban del proyecto
 │   ├── auth/callback/    # canjea el enlace de confirmación por una sesión
 │   └── layout.tsx        # fuentes, metadatos y shell de la app
 ├── components/
@@ -114,6 +114,13 @@ drizzle/                  # migraciones SQL versionadas
 - **El equipo se resuelve en el servidor, no viaja en el formulario.** RLS
   rechazaría un identificador ajeno de todos modos, pero no hay razón para
   ofrecer el hueco.
+- **Las tareas se mueven por menú, no arrastrando.** El arrastre luce en una
+  demo, pero no funciona con teclado y es incómodo en móvil. El menú deja la
+  funcionalidad completa y accesible; el arrastre puede añadirse encima más
+  adelante, no en su lugar.
+- **Mover una tarea es su propia acción**, no una edición completa: el tablero
+  manda solo el estado nuevo, sin arrastrar el resto de campos ni arriesgarse a
+  pisar un cambio que otra persona acabe de hacer.
 - **Crear un equipo es una función, no un `INSERT`.** `create_team()` crea el
   equipo y su primer administrador en una sola operación: un equipo recién
   insertado no tendría miembros, y entonces ninguna política podría decidir
@@ -140,9 +147,9 @@ Tres niveles, separados a propósito por lo que cuesta ejecutarlos:
 
 | Qué | Cuántos | Qué comprueban |
 |-----|---------|----------------|
-| **Unitarios** (Vitest) | 32 | Esquemas de validación y traducción de errores. Segundos, sin red. |
+| **Unitarios** (Vitest) | 45 | Esquemas de validación y traducción de errores. Segundos, sin red. |
 | **Permisos** (Vitest) | 16 | RLS contra Supabase real: dos usuarios, uno intenta leer y escribir en el equipo del otro. |
-| **Recorridos** (Playwright) | 16 | Registro, equipo, proyectos y rutas protegidas en un navegador real. |
+| **Recorridos** (Playwright) | 23 | Registro, equipo, proyectos, tablero y rutas protegidas en un navegador real. |
 
 Los de permisos son el corazón de la batería. Registran dos usuarios, uno monta
 su equipo con proyecto y tarea, y el otro intenta leerlo —incluso pidiendo la
@@ -177,7 +184,7 @@ rm -rf node_modules package-lock.json && npm install
 - [x] **2. Auth** — registro, login, logout y rutas protegidas con Supabase
 - [x] **3. Datos** — tablas, políticas RLS y Drizzle conectado
 - [x] **4. Equipos y proyectos** — workspace al registrarse y CRUD de proyectos
-- [ ] **5. Tareas** — CRUD de tareas y vista Kanban
+- [x] **5. Tareas** — CRUD de tareas y vista Kanban
 - [ ] **6. Roles e invitaciones** — permisos de admin y miembro
 - [ ] **7. Pulido** — estados vacíos, carga, errores, responsive y modo oscuro
 - [ ] **8. Filtros y búsqueda** — por responsable, prioridad y texto
