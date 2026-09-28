@@ -121,6 +121,16 @@ drizzle/                  # migraciones SQL versionadas
 - **Mover una tarea es su propia acción**, no una edición completa: el tablero
   manda solo el estado nuevo, sin arrastrar el resto de campos ni arriesgarse a
   pisar un cambio que otra persona acabe de hacer.
+- **Las invitaciones llegan por dos caminos a la vez.** Un enlace con código
+  para compartir por donde sea, y la propia invitación esperando a quien entre
+  con el email al que se invitó. Sin dependencia de un servidor de correo.
+- **El email de las invitaciones propias sale del token de sesión**, nunca de
+  un parámetro. Si se pasara por argumento, cualquiera podría preguntar por el
+  correo de otra persona y averiguar a qué equipos la han invitado.
+- **Irse del equipo nunca falla; dejar de ser administrador, sí.** Son cosas
+  distintas: lo primero ocurre también al borrar una cuenta, así que si se va
+  el último administrador la administración pasa al miembro más antiguo. Lo
+  segundo es deliberado y se rechaza si nadie queda al mando.
 - **Crear un equipo es una función, no un `INSERT`.** `create_team()` crea el
   equipo y su primer administrador en una sola operación: un equipo recién
   insertado no tendría miembros, y entonces ninguna política podría decidir
@@ -148,8 +158,8 @@ Tres niveles, separados a propósito por lo que cuesta ejecutarlos:
 | Qué | Cuántos | Qué comprueban |
 |-----|---------|----------------|
 | **Unitarios** (Vitest) | 45 | Esquemas de validación y traducción de errores. Segundos, sin red. |
-| **Permisos** (Vitest) | 16 | RLS contra Supabase real: dos usuarios, uno intenta leer y escribir en el equipo del otro. |
-| **Recorridos** (Playwright) | 23 | Registro, equipo, proyectos, tablero y rutas protegidas en un navegador real. |
+| **Permisos** (Vitest) | 32 | RLS contra Supabase real: dos usuarios, uno intenta leer y escribir en el equipo del otro. |
+| **Recorridos** (Playwright) | 34 | Registro, equipo, proyectos, tablero, roles e invitaciones en un navegador real. |
 
 Los de permisos son el corazón de la batería. Registran dos usuarios, uno monta
 su equipo con proyecto y tarea, y el otro intenta leerlo —incluso pidiendo la

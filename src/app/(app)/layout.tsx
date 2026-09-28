@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 
 import { Toaster } from "@/components/ui/sonner";
 import { UserMenu } from "@/components/app/user-menu";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
 import { Logo } from "@/components/marketing/logo";
 import { createClient } from "@/lib/supabase/server";
 
@@ -33,7 +35,16 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             <span className="text-base font-semibold tracking-tight">TaskFlow</span>
           </Link>
 
-          <UserMenu email={user.email ?? ""} />
+          <div className="flex items-center gap-1">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/settings">
+                <Settings />
+                <span className="hidden sm:inline">Equipo</span>
+              </Link>
+            </Button>
+
+            <UserMenu email={user.email ?? ""} />
+          </div>
         </div>
       </header>
 

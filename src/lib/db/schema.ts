@@ -76,6 +76,40 @@ export const memberships = pgTable(
   ],
 );
 
+/**
+ * Invitación pendiente de aceptar.
+ *
+ * Se guarda el email al que se invitó aunque el enlace pueda compartirse por
+ * cualquier vía: sirve para mostrar a quién se invitó y para no invitar dos
+ * veces a la misma persona.
+ */
+export const invitations = pgTable(
+  "invitations",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    role: memberRole("role").notNull().default("member"),
+    // Lo que viaja en el enlace. Es aleatorio y único: quien lo tenga puede
+    // unirse, así que nunca debe poder adivinarse a partir del id.
+    token: text("token").notNull().unique(),
+    invitedBy: uuid("invited_by").references(() => profiles.id, {
+      onDelete: "set null",
+    }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("invitations_team_idx").on(table.teamId),
+    index("invitations_token_idx").on(table.token),
+  ],
+);
+
 export const projects = pgTable(
   "projects",
   {
@@ -128,6 +162,15 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
 export const teamsRelations = relations(teams, ({ many }) => ({
   memberships: many(memberships),
   projects: many(projects),
+  invitations: many(invitations),
+}));
+
+export const invitationsRelations = relations(invitations, ({ one }) => ({
+  team: one(teams, { fields: [invitations.teamId], references: [teams.id] }),
+  invitedByProfile: one(profiles, {
+    fields: [invitations.invitedBy],
+    references: [profiles.id],
+  }),
 }));
 
 export const membershipsRelations = relations(memberships, ({ one }) => ({
@@ -159,6 +202,7 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
 export type Profile = typeof profiles.$inferSelect;
 export type Team = typeof teams.$inferSelect;
 export type Membership = typeof memberships.$inferSelect;
+export type Invitation = typeof invitations.$inferSelect;
 export type Project = typeof projects.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
 

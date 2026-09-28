@@ -4,7 +4,15 @@ import { createServerClient } from "@supabase/ssr";
 import { env } from "@/lib/env";
 
 /** Rutas que exigen sesión iniciada. */
-const RUTAS_PRIVADAS = ["/dashboard", "/projects", "/settings", "/bienvenida"];
+const RUTAS_PRIVADAS = [
+  "/dashboard",
+  "/projects",
+  "/settings",
+  "/bienvenida",
+  // Hay que iniciar sesión para aceptar una invitación: el equipo se asocia
+  // a una cuenta concreta. El `next` del login devuelve luego al enlace.
+  "/unirse",
+];
 
 /** Rutas de acceso: quien ya tiene sesión no pinta nada aquí. */
 const RUTAS_DE_ACCESO = ["/login", "/register"];

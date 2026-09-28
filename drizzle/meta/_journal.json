@@ -22,6 +22,34 @@
       "when": 1790365054872,
       "tag": "0002_backfill_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790620615727,
+      "tag": "0003_keen_blockbuster",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790620635230,
+      "tag": "0004_invitations_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790621319599,
+      "tag": "0005_traspaso_de_administracion",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790625297231,
+      "tag": "0006_mis_invitaciones",
+      "breakpoints": true
     }
   ]
 }

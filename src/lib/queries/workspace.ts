@@ -27,9 +27,19 @@ export type EquipoActual = {
 export async function obtenerEquipoActual(): Promise<EquipoActual | null> {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
   const { data, error } = await supabase
     .from("memberships")
     .select("role, teams(id, name)")
+    // Filtrar por usuario es imprescindible: las políticas dejan ver todas las
+    // membresías del equipo, así que sin esto se devolvería la de cualquier
+    // compañero y con ella su rol.
+    .eq("user_id", user.id)
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
