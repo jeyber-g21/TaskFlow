@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 
 import { cargarEntornoLocal } from "./entorno";
+import { DOMINIO_PRUEBAS, emailDePrueba, patronDeLimpieza } from "./ejecucion";
 
 // Se carga aquí y no en un setupFile: así el archivo funciona igual lo
 // ejecute Vitest, Node a secas o el editor.
@@ -25,7 +26,6 @@ const hayCredenciales = Boolean(URL && KEY && DIRECT_URL);
 // puede ejecutar la batería sin configurar una base de datos.
 const describeSiHayCredenciales = hayCredenciales ? describe : describe.skip;
 
-const DOMINIO_PRUEBAS = "taskflow-pruebas.dev";
 const CONTRASENA = "contrasena-de-prueba-2026";
 
 type Usuario = {
@@ -36,7 +36,7 @@ type Usuario = {
 
 async function registrarUsuario(etiqueta: string): Promise<Usuario> {
   const cliente = createClient(URL!, KEY!);
-  const email = `rls-${etiqueta}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@${DOMINIO_PRUEBAS}`;
+  const email = emailDePrueba("rls", etiqueta);
 
   const { data, error } = await cliente.auth.signUp({
     email,
@@ -93,7 +93,16 @@ describeSiHayCredenciales("permisos a nivel de fila (RLS)", () => {
     // perfil y sus membresías, y después caen los equipos que quedan vacíos.
     const sql = postgres(DIRECT_URL!, { max: 1, prepare: false });
     try {
-      await sql`delete from auth.users where email like ${"rls-%@" + DOMINIO_PRUEBAS}`;
+      // Solo los de esta ejecución: ver tests/integration/ejecucion.ts.
+      await sql`delete from auth.users where email like ${patronDeLimpieza("rls")}`;
+
+      // Restos de ejecuciones interrumpidas, con margen para no pisar
+      // ninguna que siga en marcha.
+      await sql`
+        delete from auth.users
+        where email like ${"rls-%@" + DOMINIO_PRUEBAS}
+          and created_at < now() - interval '1 day'
+      `;
       await sql`
         delete from public.teams t
         where not exists (select 1 from public.memberships m where m.team_id = t.id)

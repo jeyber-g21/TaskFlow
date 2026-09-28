@@ -43,5 +43,6 @@ export default defineConfig({
     timeout: 180_000,
   },
 
+  globalSetup: "./tests/e2e/preparacion.ts",
   globalTeardown: "./tests/e2e/limpieza.ts",
 });

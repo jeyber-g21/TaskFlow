@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
+import { DOMINIO_PRUEBAS, PREFIJO } from "./ejecucion";
+
 export const CONTRASENA = "contrasena-de-prueba-2026";
 
 /**
@@ -7,8 +9,8 @@ export const CONTRASENA = "contrasena-de-prueba-2026";
  * por este sufijo, así que nunca toca datos reales.
  */
 export function emailDePrueba(etiqueta: string) {
-  const unico = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  return `e2e-${etiqueta}-${unico}@taskflow-pruebas.dev`;
+  const unico = Math.random().toString(36).slice(2, 8);
+  return `${PREFIJO}-${etiqueta}-${unico}@${DOMINIO_PRUEBAS}`;
 }
 
 /**

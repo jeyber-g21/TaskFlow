@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 
 import { cargarEntornoLocal } from "./entorno";
+import { DOMINIO_PRUEBAS, emailDePrueba, patronDeLimpieza } from "./ejecucion";
 
 cargarEntornoLocal();
 
@@ -19,14 +20,13 @@ const DIRECT_URL = process.env.DIRECT_URL;
 const hayCredenciales = Boolean(URL && KEY && DIRECT_URL);
 const describeSiHayCredenciales = hayCredenciales ? describe : describe.skip;
 
-const DOMINIO_PRUEBAS = "taskflow-pruebas.dev";
 const CONTRASENA = "contrasena-de-prueba-2026";
 
 type Usuario = { cliente: SupabaseClient; id: string; email: string };
 
 async function registrarUsuario(etiqueta: string): Promise<Usuario> {
   const cliente = createClient(URL!, KEY!);
-  const email = `inv-${etiqueta}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@${DOMINIO_PRUEBAS}`;
+  const email = emailDePrueba("inv", etiqueta);
 
   const { data, error } = await cliente.auth.signUp({
     email,
@@ -92,7 +92,16 @@ describeSiHayCredenciales("invitaciones y roles", () => {
   afterAll(async () => {
     const sql = postgres(DIRECT_URL!, { max: 1, prepare: false });
     try {
-      await sql`delete from auth.users where email like ${"inv-%@" + DOMINIO_PRUEBAS}`;
+      // Solo los de esta ejecución: ver tests/integration/ejecucion.ts.
+      await sql`delete from auth.users where email like ${patronDeLimpieza("inv")}`;
+
+      // Restos de ejecuciones interrumpidas, con margen para no pisar
+      // ninguna que siga en marcha.
+      await sql`
+        delete from auth.users
+        where email like ${"inv-%@" + DOMINIO_PRUEBAS}
+          and created_at < now() - interval '1 day'
+      `;
       await sql`
         delete from public.teams t
         where not exists (select 1 from public.memberships m where m.team_id = t.id)

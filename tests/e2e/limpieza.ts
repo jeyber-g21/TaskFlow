@@ -1,5 +1,6 @@
 import postgres from "postgres";
 
+import { DOMINIO_PRUEBAS, PREFIJO } from "./ejecucion";
 import { cargarEntornoLocal } from "../integration/entorno";
 
 /**
@@ -17,10 +18,21 @@ export default async function limpiarUsuariosDePrueba() {
 
   const sql = postgres(url, { max: 1, prepare: false });
   try {
+    // Solo los de esta ejecución: otra puede estar corriendo a la vez contra
+    // la misma base de datos, y borrarle los usuarios a mitad de camino
+    // produce fallos que parecen aleatorios.
     const borrados = await sql`
       delete from auth.users
-      where email like 'e2e-%@taskflow-pruebas.dev'
+      where email like ${PREFIJO + "-%@" + DOMINIO_PRUEBAS}
       returning email
+    `;
+
+    // Restos de ejecuciones que se cortaron por la mitad. Un día de margen
+    // basta para no tocar ninguna que siga en marcha.
+    await sql`
+      delete from auth.users
+      where email like ${"e2e-%@" + DOMINIO_PRUEBAS}
+        and created_at < now() - interval '1 day'
     `;
     await sql`
       delete from public.teams t
