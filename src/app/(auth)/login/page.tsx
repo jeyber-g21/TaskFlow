@@ -36,6 +36,15 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         )}
 
         <LoginForm next={typeof next === "string" ? next : undefined} />
+
+        <p className="text-center text-sm">
+          <Link
+            href="/recuperar"
+            className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </p>
       </CardContent>
 
       <CardFooter className="justify-center">

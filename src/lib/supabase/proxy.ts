@@ -15,7 +15,10 @@ const RUTAS_PRIVADAS = [
 ];
 
 /** Rutas de acceso: quien ya tiene sesión no pinta nada aquí. */
-const RUTAS_DE_ACCESO = ["/login", "/register"];
+// Quien ya tiene sesión no pinta nada aquí. /nueva-contrasena se queda
+// fuera a propósito: se llega con una sesión recién abierta por el enlace del
+// correo, y redirigir al panel dejaría a la persona sin cambiar la contraseña.
+const RUTAS_DE_ACCESO = ["/login", "/register", "/recuperar"];
 
 /**
  * Se ejecuta antes de cada petición: refresca el token de sesión (que caduca
@@ -55,7 +58,24 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
+
+  // Si un enlace de correo falla, Supabase redirige a la portada con el error
+  // en la URL. Sin esto, la persona se queda mirando la página de inicio con
+  // un churro de parámetros y sin entender qué ha pasado.
+  const errorDeEnlace = searchParams.get("error_code");
+  if (errorDeEnlace && pathname === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.search = "";
+    url.searchParams.set(
+      "error",
+      errorDeEnlace === "otp_expired"
+        ? "El enlace ha caducado o ya se usó. Pide uno nuevo."
+        : "No hemos podido validar ese enlace. Pide uno nuevo.",
+    );
+    return NextResponse.redirect(url);
+  }
   const esRutaPrivada = RUTAS_PRIVADAS.some(
     (ruta) => pathname === ruta || pathname.startsWith(`${ruta}/`),
   );

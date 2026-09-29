@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/marketing/logo";
+import { ThemeToggle } from "@/components/tema/theme-toggle";
 
 export function SiteHeader() {
   return (
@@ -35,7 +36,9 @@ export function SiteHeader() {
           </a>
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <ThemeToggle />
+
           <Button asChild variant="ghost" size="sm">
             <Link href="/login">Entrar</Link>
           </Button>

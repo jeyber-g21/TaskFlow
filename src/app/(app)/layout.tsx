@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeToggle } from "@/components/tema/theme-toggle";
 import { UserMenu } from "@/components/app/user-menu";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
@@ -36,6 +37,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           </Link>
 
           <div className="flex items-center gap-1">
+            <ThemeToggle />
+
             <Button asChild variant="ghost" size="sm">
               <Link href="/settings">
                 <Settings />
