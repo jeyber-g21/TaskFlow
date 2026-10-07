@@ -7,6 +7,8 @@ import { ProjectDialog } from "@/components/workspace/project-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { TeamSummary } from "@/components/workspace/team-summary";
+import { obtenerMiembrosDelEquipo } from "@/lib/queries/equipo";
 import { obtenerEquipoActual, obtenerProyectos } from "@/lib/queries/workspace";
 
 export const metadata: Metadata = {
@@ -21,7 +23,10 @@ export default async function DashboardPage() {
     redirect("/bienvenida");
   }
 
-  const proyectos = await obtenerProyectos(equipo.id);
+  const [proyectos, miembros] = await Promise.all([
+    obtenerProyectos(equipo.id),
+    obtenerMiembrosDelEquipo(equipo.id),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
@@ -50,6 +55,12 @@ export default async function DashboardPage() {
         </ProjectDialog>
       </div>
 
+      {proyectos.length > 0 && (
+        <div className="mt-8">
+          <TeamSummary proyectos={proyectos} miembros={miembros.length} />
+        </div>
+      )}
+
       {proyectos.length === 0 ? (
         <Card className="mt-8">
           <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
@@ -71,7 +82,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {proyectos.map((proyecto) => (
             <ProjectCard key={proyecto.id} proyecto={proyecto} rol={equipo.rol} />
           ))}

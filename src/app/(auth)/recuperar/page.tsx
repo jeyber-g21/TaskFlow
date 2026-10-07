@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function RecuperarPage() {
   return (
-    <Card className="w-full max-w-sm">
+    <Card>
       <CardHeader>
         <CardTitle>¿Olvidaste tu contraseña?</CardTitle>
         <CardDescription>

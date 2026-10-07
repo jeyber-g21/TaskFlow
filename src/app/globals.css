@@ -274,3 +274,50 @@
     transparent
   );
 }
+
+/* Fondo de la zona privada: un tinte casi imperceptible en las esquinas para
+   que las tarjetas blancas tengan sobre qué apoyarse. Sobre blanco puro todo
+   se ve plano por mucho que las tarjetas lleven sombra. */
+.fondo-app {
+  background:
+    radial-gradient(
+      70% 50% at 0% 0%,
+      color-mix(in oklch, var(--primary) 7%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      60% 45% at 100% 0%,
+      color-mix(in oklch, var(--acento) 6%, transparent),
+      transparent 60%
+    ),
+    var(--background);
+  background-attachment: fixed;
+}
+
+/* Cabecera de cada columna del tablero, teñida según su estado: el color dice
+   de un vistazo en qué punto está el trabajo, sin leer. */
+.columna-todo {
+  background: color-mix(in oklch, var(--muted) 60%, transparent);
+}
+
+.columna-progreso {
+  background: color-mix(in oklch, var(--primary) 7%, transparent);
+}
+
+.columna-hecho {
+  background: color-mix(in oklch, oklch(0.72 0.17 155) 9%, transparent);
+}
+
+/* Franja lateral de prioridad en las tarjetas de tarea. Acompaña a la etiqueta
+   de texto, no la sustituye: el color solo no vale para quien no lo distingue. */
+.prioridad-high {
+  box-shadow: inset 3px 0 0 0 oklch(0.63 0.21 25);
+}
+
+.prioridad-medium {
+  box-shadow: inset 3px 0 0 0 oklch(0.76 0.15 75);
+}
+
+.prioridad-low {
+  box-shadow: inset 3px 0 0 0 color-mix(in oklch, var(--muted-foreground) 40%, transparent);
+}

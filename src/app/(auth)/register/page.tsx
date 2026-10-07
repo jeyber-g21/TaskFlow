@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <Card className="w-full max-w-sm">
+    <Card>
       <CardHeader>
         <CardTitle>Crear cuenta</CardTitle>
         <CardDescription>

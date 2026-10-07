@@ -26,7 +26,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <header className="border-b border-border/60">
+      <header className="barra-superior sticky top-0 z-50 backdrop-blur-md">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link
             href="/dashboard"
@@ -51,7 +51,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1">{children}</main>
+      <main className="fondo-app flex-1">{children}</main>
 
       {/* Los avisos de "creado" o "eliminado" aparecen aquí. */}
       <Toaster position="bottom-right" />

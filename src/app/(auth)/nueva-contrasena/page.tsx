@@ -27,7 +27,7 @@ export default async function NuevaContrasenaPage() {
   // pasar por /auth/callback. Sin sesión, el enlace caducó o nunca existió.
   if (!user) {
     return (
-      <Card className="w-full max-w-sm">
+      <Card>
         <CardHeader>
           <CardTitle>El enlace ya no vale</CardTitle>
           <CardDescription>
@@ -45,7 +45,7 @@ export default async function NuevaContrasenaPage() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card>
       <CardHeader>
         <CardTitle>Elige una contraseña nueva</CardTitle>
         <CardDescription>

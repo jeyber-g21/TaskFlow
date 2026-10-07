@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import type { Responsable, TareaConResponsable } from "@/lib/queries/tasks";
 import { COLUMNAS } from "@/lib/validations/task";
 
-const PUNTO_COLUMNA: Record<string, string> = {
-  todo: "bg-muted-foreground/50",
-  in_progress: "bg-primary",
-  done: "bg-emerald-500",
+const ESTILO_COLUMNA: Record<string, { punto: string; cabecera: string }> = {
+  todo: { punto: "bg-muted-foreground/50", cabecera: "columna-todo" },
+  in_progress: { punto: "bg-primary", cabecera: "columna-progreso" },
+  done: { punto: "bg-emerald-500", cabecera: "columna-hecho" },
 };
 
 /**
@@ -35,19 +35,21 @@ export function TaskBoard({
           <section
             key={columna.estado}
             aria-label={columna.titulo}
-            className="flex flex-col rounded-xl bg-muted/40 p-3"
+            className="flex flex-col overflow-hidden rounded-xl border border-border/70 bg-card/40"
           >
-            <header className="mb-3 flex items-center gap-2 px-0.5">
+            <header
+              className={`flex items-center gap-2 border-b border-border/60 px-3 py-2.5 ${ESTILO_COLUMNA[columna.estado].cabecera}`}
+            >
               <span
-                className={`size-2 rounded-full ${PUNTO_COLUMNA[columna.estado]}`}
+                className={`size-2 rounded-full ${ESTILO_COLUMNA[columna.estado].punto}`}
               />
               <h2 className="text-sm font-medium">{columna.titulo}</h2>
-              <span className="ml-auto text-sm text-muted-foreground tabular-nums">
+              <span className="ml-auto rounded-full bg-background/70 px-2 py-0.5 text-xs font-medium tabular-nums">
                 {deLaColumna.length}
               </span>
             </header>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 p-3">
               {deLaColumna.map((tarea) => (
                 <TaskCard
                   key={tarea.id}
@@ -74,7 +76,7 @@ export function TaskBoard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="mt-2 w-full justify-start text-muted-foreground"
+                className="mx-3 mb-3 w-auto justify-start text-muted-foreground"
               >
                 <Plus />
                 Añadir tarea

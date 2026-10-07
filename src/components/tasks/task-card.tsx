@@ -80,7 +80,7 @@ export function TaskCard({
   return (
     <>
       <article
-        className={`tarjeta-viva rounded-lg border border-border bg-card p-3 shadow-xs ${
+        className={`tarjeta-viva prioridad-${tarea.prioridad} rounded-lg border border-border bg-card p-3 pl-3.5 shadow-xs ${
           moviendo ? "opacity-50" : ""
         }`}
       >
