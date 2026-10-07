@@ -4,9 +4,10 @@ import { cargarEntornoLocal } from "./tests/integration/entorno";
 
 cargarEntornoLocal();
 
-// Un puerto propio para que los tests no choquen con el servidor que tengas
-// abierto mientras programas.
-const PUERTO = 3100;
+// Un puerto poco común a propósito: el 3000 y el 3100 los ocupa cualquier otro
+// proyecto que tengas abierto, y entonces los tests acaban hablando con otra
+// aplicación y fallando por motivos que no tienen nada que ver con este código.
+const PUERTO = 3177;
 const BASE_URL = `http://localhost:${PUERTO}`;
 
 export default defineConfig({
