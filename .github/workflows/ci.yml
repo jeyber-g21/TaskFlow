@@ -72,6 +72,12 @@ jobs:
         if: steps.credenciales.outputs.disponibles == 'si'
         run: npx playwright install --with-deps chromium
 
+      # Compilar aqui y no dentro de Playwright: su espera de arranque cuenta
+      # el build entero, y al crecer el proyecto acaba agotandola.
+      - name: Compilar la aplicacion
+        if: steps.credenciales.outputs.disponibles == 'si'
+        run: npm run build
+
       - name: Recorridos completos
         if: steps.credenciales.outputs.disponibles == 'si'
         run: npm run test:e2e

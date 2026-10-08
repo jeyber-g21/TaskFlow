@@ -188,9 +188,14 @@ test.describe("tablero de tareas", () => {
 
     await page.getByRole("link", { name: "Volver al panel" }).click();
 
-    // En la tarjeta del proyecto: 2 creadas, 1 completada.
-    await expect(page.getByText("Tareas creadas")).toBeVisible();
-    await expect(page.getByText("Completadas")).toBeVisible();
-    await expect(page.getByText("50%")).toBeVisible();
+    // El resumen del equipo también dice "Completadas", así que hay que
+    // acotar la comprobación a la tarjeta de este proyecto.
+    const tarjeta = page
+      .locator('[data-slot="card"]')
+      .filter({ hasText: "Proyecto con recuento" });
+
+    await expect(tarjeta.getByText("Tareas creadas")).toBeVisible();
+    await expect(tarjeta.getByText("Completadas")).toBeVisible();
+    await expect(tarjeta.getByText("50%")).toBeVisible();
   });
 });

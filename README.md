@@ -159,7 +159,7 @@ Tres niveles, separados a propósito por lo que cuesta ejecutarlos:
 |-----|---------|----------------|
 | **Unitarios** (Vitest) | 45 | Esquemas de validación y traducción de errores. Segundos, sin red. |
 | **Permisos** (Vitest) | 32 | RLS contra Supabase real: dos usuarios, uno intenta leer y escribir en el equipo del otro. |
-| **Recorridos** (Playwright) | 34 | Registro, equipo, proyectos, tablero, roles e invitaciones en un navegador real. |
+| **Recorridos** (Playwright) | 44 | Registro, equipo, proyectos, tablero, roles, invitaciones, tema y recuperación de contraseña en un navegador real. |
 
 Los de permisos son el corazón de la batería. Registran dos usuarios, uno monta
 su equipo con proyecto y tarea, y el otro intenta leerlo —incluso pidiendo la

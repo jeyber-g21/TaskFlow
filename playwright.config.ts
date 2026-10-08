@@ -34,10 +34,14 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 
   webServer: {
-    // En CI se prueba el build de producción, que es lo que ve la gente.
-    // En local se usa el servidor de desarrollo para no esperar a compilar.
+    // En CI se prueba el build de producción, que es lo que ve la gente; en
+    // local, el servidor de desarrollo para no esperar a compilar.
+    //
+    // El build NO se hace aquí: este tiempo de espera lo cuenta entero, y a
+    // medida que el proyecto crece acaba agotándolo. Compilar es un paso
+    // aparte del workflow, que además se ve por separado cuando algo falla.
     command: process.env.CI
-      ? `npm run build && npm run start -- --port ${PUERTO}`
+      ? `npm run start -- --port ${PUERTO}`
       : `npm run dev -- --port ${PUERTO}`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,

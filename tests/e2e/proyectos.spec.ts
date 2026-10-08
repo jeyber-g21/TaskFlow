@@ -112,6 +112,8 @@ test.describe("proyectos", () => {
     await page.goto(urlAjena);
     // La base de datos no devuelve la fila, así que la página no existe. No
     // se confirma que ese identificador sea válido.
-    await expect(page.getByText(/404|no se ha encontrado|not found/i).first()).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Aquí no hay nada" }),
+    ).toBeVisible();
   });
 });
