@@ -252,6 +252,9 @@ test.describe("roles", () => {
       await registrarseSinEquipo(miembro, email, "Otra Persona");
       await miembro.goto(enlace);
       await miembro.getByRole("button", { name: /Unirme a/ }).click();
+      // Sin esperar aquí, el admin puede abrir la página antes de que el
+      // segundo miembro exista, y entonces no hay ningún rol que contar.
+      await expect(miembro).toHaveURL(/\/dashboard$/, ESPERA_PRIMERA_CARGA);
 
       await admin.goto("/settings");
       // El aviso está mientras solo haya un administrador.

@@ -39,10 +39,16 @@ test.describe("primer acceso", () => {
     await expect(
       page.getByRole("heading", { name: "Lanzamiento de la web" }),
     ).toBeVisible();
+    // Por rol de encabezado: el título también aparece en la etiqueta del menú
+    // de acciones de cada tarea.
     await expect(
-      page.getByText("Escribir los textos de la página de inicio"),
+      page.getByRole("heading", {
+        name: "Escribir los textos de la página de inicio",
+      }),
     ).toBeVisible();
-    await expect(page.getByText("Reservar el dominio")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Reservar el dominio" }),
+    ).toBeVisible();
   });
 
   test("con equipo ya creado, /bienvenida devuelve al panel", async ({ page }) => {
