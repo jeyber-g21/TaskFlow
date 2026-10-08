@@ -4,10 +4,12 @@ import { ArrowLeft, Plus } from "lucide-react";
 
 import { TaskBoard } from "@/components/tasks/task-board";
 import { TaskDialog } from "@/components/tasks/task-dialog";
+import { TaskFilters } from "@/components/tasks/task-filters";
 import { Button } from "@/components/ui/button";
 import { obtenerMiembros, obtenerTareas } from "@/lib/queries/tasks";
 import { obtenerEquipoActual } from "@/lib/queries/workspace";
 import { createClient } from "@/lib/supabase/server";
+import { hayFiltrosActivos, leerFiltros } from "@/lib/validations/filtros";
 
 export async function generateMetadata({ params }: PageProps<"/projects/[id]">) {
   const { id } = await params;
@@ -21,8 +23,12 @@ export async function generateMetadata({ params }: PageProps<"/projects/[id]">) 
   return { title: data?.name ?? "Proyecto" };
 }
 
-export default async function ProyectoPage({ params }: PageProps<"/projects/[id]">) {
+export default async function ProyectoPage({
+  params,
+  searchParams,
+}: PageProps<"/projects/[id]">) {
   const { id } = await params;
+  const filtros = leerFiltros(await searchParams);
 
   const equipo = await obtenerEquipoActual();
   if (!equipo) {
@@ -44,11 +50,12 @@ export default async function ProyectoPage({ params }: PageProps<"/projects/[id]
   }
 
   const [tareas, miembros] = await Promise.all([
-    obtenerTareas(proyecto.id),
+    obtenerTareas(proyecto.id, filtros),
     obtenerMiembros(equipo.id),
   ]);
 
   const hechas = tareas.filter((t) => t.estado === "done").length;
+  const filtrando = hayFiltrosActivos(filtros);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
@@ -73,12 +80,16 @@ export default async function ProyectoPage({ params }: PageProps<"/projects/[id]
 
           {tareas.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">
-              Todavía no hay tareas.
+              {filtrando
+                ? "Ninguna tarea coincide con los filtros."
+                : "Todavía no hay tareas."}
             </p>
           ) : (
             <dl className="mt-4 flex gap-8">
               <div>
-                <dt className="text-xs text-muted-foreground">Tareas creadas</dt>
+                <dt className="text-xs text-muted-foreground">
+                  {filtrando ? "Tareas encontradas" : "Tareas creadas"}
+                </dt>
                 <dd className="text-2xl font-semibold tabular-nums">
                   {tareas.length}
                 </dd>
@@ -99,10 +110,15 @@ export default async function ProyectoPage({ params }: PageProps<"/projects/[id]
         </TaskDialog>
       </div>
 
+      <div className="mb-6 rounded-xl border border-border bg-card p-4">
+        <TaskFilters filtros={filtros} miembros={miembros} />
+      </div>
+
       <TaskBoard
         proyectoId={proyecto.id}
         tareas={tareas}
         miembros={miembros}
+        filtrando={filtrando}
       />
     </div>
   );

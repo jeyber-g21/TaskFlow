@@ -4,6 +4,11 @@ import { calcularIniciales } from "@/lib/nombres";
 import { createClient } from "@/lib/supabase/server";
 import type { Task } from "@/lib/db/schema";
 import type { TaskPriorityValue, TaskStatusValue } from "@/lib/validations/task";
+import {
+  SIN_RESPONSABLE,
+  TODOS,
+  type Filtros,
+} from "@/lib/validations/filtros";
 
 export type Responsable = {
   id: string;
@@ -20,16 +25,51 @@ export type TareaConResponsable = Pick<
   responsable: Responsable | null;
 };
 
+/**
+ * Escapa lo que se mete en un filtro `or` de PostgREST.
+ *
+ * Su sintaxis separa condiciones por comas y agrupa con paréntesis, así que un
+ * término de búsqueda con esos caracteres rompería la consulta. Las comillas
+ * tampoco pueden pasar tal cual.
+ */
+function escaparParaBusqueda(texto: string): string {
+  return texto.replace(/[,()\\"]/g, " ");
+}
+
 export async function obtenerTareas(
   proyectoId: string,
+  filtros?: Filtros,
 ): Promise<TareaConResponsable[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let consulta = supabase
     .from("tasks")
     .select("id, title, description, status, priority, created_at, profiles(id, full_name)")
-    .eq("project_id", proyectoId)
-    .order("created_at", { ascending: true });
+    .eq("project_id", proyectoId);
+
+  // Los filtros se aplican en Postgres y no en JavaScript: traerse todas las
+  // tareas para descartarlas después no escala, y además deja pasar trabajo
+  // que la base de datos hace mejor.
+  if (filtros?.prioridad && filtros.prioridad !== TODOS) {
+    consulta = consulta.eq("priority", filtros.prioridad);
+  }
+
+  if (filtros?.responsable && filtros.responsable !== TODOS) {
+    consulta =
+      filtros.responsable === SIN_RESPONSABLE
+        ? consulta.is("assignee_id", null)
+        : consulta.eq("assignee_id", filtros.responsable);
+  }
+
+  if (filtros?.q) {
+    const termino = escaparParaBusqueda(filtros.q);
+    // Busca en el título y en la descripción; `ilike` ignora mayúsculas.
+    consulta = consulta.or(
+      `title.ilike.%${termino}%,description.ilike.%${termino}%`,
+    );
+  }
+
+  const { data, error } = await consulta.order("created_at", { ascending: true });
 
   if (error || !data) return [];
 

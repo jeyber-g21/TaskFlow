@@ -8,6 +8,13 @@
 export function traducirErrorDeAuth(mensaje: string): string {
   const m = mensaje.toLowerCase();
 
+  // Quien usa la aplicación ve un mensaje entendible; en los registros del
+  // servidor queda el original. Sin esto, un error que no sepamos traducir
+  // desaparece sin dejar rastro y solo se puede diagnosticar a ciegas.
+  if (typeof window === "undefined") {
+    console.error("[auth] error de Supabase:", mensaje);
+  }
+
   if (m.includes("invalid login credentials")) {
     return "El email o la contraseña no son correctos.";
   }

@@ -29,6 +29,19 @@ export async function registrarse(
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Contraseña").fill(CONTRASENA);
   await page.getByRole("button", { name: "Crear cuenta" }).click();
+
+  // Supabase limita cuántas cuentas se pueden crear por hora desde una misma
+  // dirección. La suite crea unas cincuenta seguidas, así que al toparse con
+  // el límite conviene decirlo: el error por defecto sería un tiempo de
+  // espera agotado, que no explica nada.
+  const avisoDeLimite = page.getByText(/Demasiados intentos/);
+  if (await avisoDeLimite.isVisible().catch(() => false)) {
+    throw new Error(
+      "Supabase ha cortado el registro por exceso de intentos. Sube el límite " +
+        "en Authentication → Rate Limits o espacia las ejecuciones.",
+    );
+  }
+
   await expect(page).toHaveURL(/\/bienvenida$/);
 
   return email;
@@ -81,14 +94,18 @@ export async function rellenarTarea(
   page: Page,
   datos: { titulo: string; descripcion?: string; prioridad?: string },
 ) {
-  await page.getByLabel("Título").fill(datos.titulo);
+  // Se busca dentro del diálogo: el tablero tiene detrás sus propios filtros,
+  // y sin acotar, "Prioridad" encontraría dos controles distintos.
+  const dialogo = page.getByRole("dialog");
+
+  await dialogo.getByLabel("Título").fill(datos.titulo);
 
   if (datos.descripcion) {
-    await page.getByLabel(/Descripción/).fill(datos.descripcion);
+    await dialogo.getByLabel(/Descripción/).fill(datos.descripcion);
   }
 
   if (datos.prioridad) {
-    await page.getByLabel("Prioridad").click();
+    await dialogo.getByLabel("Prioridad").click();
     await page.getByRole("option", { name: datos.prioridad }).click();
   }
 }

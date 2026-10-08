@@ -21,10 +21,12 @@ export function TaskBoard({
   proyectoId,
   tareas,
   miembros,
+  filtrando = false,
 }: {
   proyectoId: string;
   tareas: TareaConResponsable[];
   miembros: Responsable[];
+  filtrando?: boolean;
 }) {
   return (
     <div className="grid gap-4 md:grid-cols-3">
@@ -61,7 +63,7 @@ export function TaskBoard({
 
               {deLaColumna.length === 0 && (
                 <p className="rounded-lg border border-dashed border-border/70 px-3 py-6 text-center text-xs text-muted-foreground">
-                  Nada por aquí
+                  {filtrando ? "Nada que coincida" : "Nada por aquí"}
                 </p>
               )}
             </div>

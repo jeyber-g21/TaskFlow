@@ -132,7 +132,7 @@ test.describe("tablero de tareas", () => {
     await page.getByRole("button", { name: "Nueva tarea" }).click();
     await rellenarTarea(page, { titulo: "Tarea asignada" });
 
-    await page.getByLabel("Responsable").click();
+    await page.getByRole("dialog").getByLabel("Responsable").click();
     await page.getByRole("option", { name: "Ana Prueba" }).click();
     await page.getByRole("button", { name: "Crear tarea" }).click();
 

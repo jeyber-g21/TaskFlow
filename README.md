@@ -114,6 +114,13 @@ drizzle/                  # migraciones SQL versionadas
 - **El equipo se resuelve en el servidor, no viaja en el formulario.** RLS
   rechazaría un identificador ajeno de todos modos, pero no hay razón para
   ofrecer el hueco.
+- **Los filtros viven en la URL, no en el estado de un componente.** Así un
+  tablero filtrado se puede compartir por chat, sobrevive a una recarga y el
+  botón de atrás hace lo que se espera. Como vienen de fuera, se validan igual
+  que cualquier entrada: `?prioridad=urgentisima` se ignora en vez de romper la
+  página.
+- **El filtrado ocurre en Postgres.** Traerse todas las tareas para descartarlas
+  en JavaScript funciona con veinte y se desmorona con dos mil.
 - **Las tareas se mueven por menú, no arrastrando.** El arrastre luce en una
   demo, pero no funciona con teclado y es incómodo en móvil. El menú deja la
   funcionalidad completa y accesible; el arrastre puede añadirse encima más
@@ -157,9 +164,9 @@ Tres niveles, separados a propósito por lo que cuesta ejecutarlos:
 
 | Qué | Cuántos | Qué comprueban |
 |-----|---------|----------------|
-| **Unitarios** (Vitest) | 45 | Esquemas de validación y traducción de errores. Segundos, sin red. |
+| **Unitarios** (Vitest) | 56 | Esquemas de validación y traducción de errores. Segundos, sin red. |
 | **Permisos** (Vitest) | 32 | RLS contra Supabase real: dos usuarios, uno intenta leer y escribir en el equipo del otro. |
-| **Recorridos** (Playwright) | 44 | Registro, equipo, proyectos, tablero, roles, invitaciones, tema y recuperación de contraseña en un navegador real. |
+| **Recorridos** (Playwright) | 48 | Registro, equipo, proyectos, tablero, roles, invitaciones, filtros, tema y recuperación de contraseña en un navegador real. |
 
 Los de permisos son el corazón de la batería. Registran dos usuarios, uno monta
 su equipo con proyecto y tarea, y el otro intenta leerlo —incluso pidiendo la
@@ -197,7 +204,7 @@ rm -rf node_modules package-lock.json && npm install
 - [x] **5. Tareas** — CRUD de tareas y vista Kanban
 - [ ] **6. Roles e invitaciones** — permisos de admin y miembro
 - [ ] **7. Pulido** — estados vacíos, carga, errores, responsive y modo oscuro
-- [ ] **8. Filtros y búsqueda** — por responsable, prioridad y texto
+- [x] **8. Filtros y búsqueda** — por responsable, prioridad y texto
 - [x] **9. Tests** — unitarios, permisos y recorridos completos, más CI en GitHub Actions
 
 ---
