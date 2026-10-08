@@ -22,6 +22,22 @@ describe("teamSchema", () => {
   it("rechaza nombres demasiado largos", () => {
     expect(teamSchema.safeParse({ name: "a".repeat(61) }).success).toBe(false);
   });
+
+  it("añade el proyecto de ejemplo si no se dice lo contrario", () => {
+    const resultado = teamSchema.safeParse({ name: "Equipo" });
+
+    expect(resultado.success).toBe(true);
+    if (!resultado.success) return;
+    expect(resultado.data.conEjemplo).toBe(true);
+  });
+
+  it("respeta que se desmarque el proyecto de ejemplo", () => {
+    const resultado = teamSchema.safeParse({ name: "Equipo", conEjemplo: false });
+
+    expect(resultado.success).toBe(true);
+    if (!resultado.success) return;
+    expect(resultado.data.conEjemplo).toBe(false);
+  });
 });
 
 describe("projectSchema", () => {

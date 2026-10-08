@@ -1,6 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { cerrarSesion, registrarse, registrarseConEquipo } from "./utilidades";
+import {
+  cerrarSesion,
+  crearEquipo,
+  registrarse,
+  registrarseConEquipo,
+} from "./utilidades";
 
 /**
  * El recorrido de alguien que entra por primera vez: se registra, crea su
@@ -24,6 +29,20 @@ test.describe("primer acceso", () => {
     await expect(page.getByText("Crea tu primer proyecto")).toBeVisible();
     // Quien crea el equipo es su administrador.
     await expect(page.getByText("Admin")).toBeVisible();
+  });
+
+  test("el proyecto de ejemplo llega con sus tareas repartidas", async ({ page }) => {
+    await registrarse(page, "ejemplo");
+    await crearEquipo(page, "Equipo Ejemplo", { conEjemplo: true });
+
+    await page.getByRole("link", { name: "Lanzamiento de la web" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Lanzamiento de la web" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Escribir los textos de la página de inicio"),
+    ).toBeVisible();
+    await expect(page.getByText("Reservar el dominio")).toBeVisible();
   });
 
   test("con equipo ya creado, /bienvenida devuelve al panel", async ({ page }) => {

@@ -23,7 +23,7 @@ export function TeamForm({ sugerencia }: { sugerencia: string }) {
     formState: { errors, isSubmitting },
   } = useForm<TeamInput>({
     resolver: resolverZod(teamSchema),
-    defaultValues: { name: sugerencia },
+    defaultValues: { name: sugerencia, conEjemplo: true },
   });
 
   async function onSubmit(values: TeamInput) {
@@ -61,6 +61,23 @@ export function TeamForm({ sugerencia }: { sugerencia: string }) {
           Podrás cambiarlo más adelante.
         </p>
       </div>
+
+      {/* Casilla nativa en vez de un componente propio: es un control sencillo
+          que ya trae teclado y lectores de pantalla resueltos. */}
+      <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-border bg-muted/30 p-3">
+        <input
+          type="checkbox"
+          className="mt-0.5 size-4 accent-primary"
+          {...register("conEjemplo")}
+        />
+        <span className="text-sm">
+          <span className="font-medium">Añadir un proyecto de ejemplo</span>
+          <span className="block text-xs text-muted-foreground">
+            Un tablero con tareas de muestra para no empezar con el panel
+            vacío. Se puede borrar en cualquier momento.
+          </span>
+        </span>
+      </label>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting && <Loader2 className="animate-spin" />}

@@ -47,9 +47,21 @@ export async function registrarse(
   return email;
 }
 
-/** Crea el equipo y deja la sesión en el panel. */
-export async function crearEquipo(page: Page, nombre: string) {
+/**
+ * Crea el equipo y deja la sesión en el panel.
+ *
+ * Sin el proyecto de ejemplo salvo que se pida: cada test cuenta y busca sus
+ * propios proyectos y tareas, y siete tareas de muestra se meterían en medio.
+ */
+export async function crearEquipo(
+  page: Page,
+  nombre: string,
+  { conEjemplo = false } = {},
+) {
   await page.getByLabel("Nombre del equipo").fill(nombre);
+  await page
+    .getByLabel("Añadir un proyecto de ejemplo")
+    .setChecked(conEjemplo);
   await page.getByRole("button", { name: "Crear equipo" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
 }

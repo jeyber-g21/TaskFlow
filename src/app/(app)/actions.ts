@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { PROYECTO_DE_EJEMPLO, TAREAS_DE_EJEMPLO } from "@/lib/ejemplo";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerEquipoActual } from "@/lib/queries/workspace";
 import {
@@ -44,7 +45,7 @@ export async function crearEquipo(input: TeamInput): Promise<ResultadoAccion> {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("create_team", {
+  const { data: equipoId, error } = await supabase.rpc("create_team", {
     team_name: parsed.data.name,
   });
 
@@ -52,8 +53,53 @@ export async function crearEquipo(input: TeamInput): Promise<ResultadoAccion> {
     return { status: "error", message: traducirErrorDeDatos(error.code) };
   }
 
+  if (parsed.data.conEjemplo && equipoId) {
+    await crearContenidoDeEjemplo(equipoId);
+  }
+
   revalidatePath("/", "layout");
   redirect("/dashboard");
+}
+
+/**
+ * Crea un proyecto de muestra con tareas repartidas por las tres columnas.
+ *
+ * Si algo falla aquí no se interrumpe nada: el equipo ya existe y lo
+ * importante es que la persona entre. Quedarse fuera por no poder crear unos
+ * datos de ejemplo sería absurdo.
+ */
+async function crearContenidoDeEjemplo(equipoId: string): Promise<void> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const { data: proyecto } = await supabase
+      .from("projects")
+      .insert({
+        team_id: equipoId,
+        name: PROYECTO_DE_EJEMPLO.nombre,
+        description: PROYECTO_DE_EJEMPLO.descripcion,
+      })
+      .select("id")
+      .single();
+
+    if (!proyecto) return;
+
+    await supabase.from("tasks").insert(
+      TAREAS_DE_EJEMPLO.map((tarea) => ({
+        project_id: proyecto.id,
+        title: tarea.titulo,
+        description: tarea.descripcion,
+        status: tarea.estado,
+        priority: tarea.prioridad,
+        assignee_id: tarea.mia ? (user?.id ?? null) : null,
+      })),
+    );
+  } catch {
+    // Ver el párrafo de arriba: esto es un extra, no un requisito.
+  }
 }
 
 export async function crearProyecto(

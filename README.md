@@ -18,6 +18,20 @@ estado está, pero las herramientas grandes piden más mantenimiento del que
 ahorran. TaskFlow se queda en lo esencial: equipos con roles, proyectos y un
 tablero de tres columnas con responsable y prioridad por tarea.
 
+## Capturas
+
+![Tablero Kanban con búsqueda y filtros por prioridad y responsable](docs/capturas/tablero.png)
+
+*El tablero del proyecto: tres columnas, prioridad y responsable en cada
+tarea, y filtros que viven en la URL.*
+
+| Panel del equipo | Gestión del equipo |
+|:---:|:---:|
+| ![Panel con los proyectos del equipo y su progreso](docs/capturas/panel.png) | ![Invitaciones y miembros del equipo con sus roles](docs/capturas/equipo.png) |
+| Proyectos del equipo con su progreso. | Invitaciones por email o enlace y roles de cada miembro. |
+
+![Pantalla de acceso](docs/capturas/login.png)
+
 ## Stack y por qué
 
 | Capa | Elección | Por qué |
@@ -164,9 +178,9 @@ Tres niveles, separados a propósito por lo que cuesta ejecutarlos:
 
 | Qué | Cuántos | Qué comprueban |
 |-----|---------|----------------|
-| **Unitarios** (Vitest) | 56 | Esquemas de validación y traducción de errores. Segundos, sin red. |
+| **Unitarios** (Vitest) | 58 | Esquemas de validación y traducción de errores. Segundos, sin red. |
 | **Permisos** (Vitest) | 32 | RLS contra Supabase real: dos usuarios, uno intenta leer y escribir en el equipo del otro. |
-| **Recorridos** (Playwright) | 48 | Registro, equipo, proyectos, tablero, roles, invitaciones, filtros, tema y recuperación de contraseña en un navegador real. |
+| **Recorridos** (Playwright) | 49 | Registro, equipo, proyectos, tablero, roles, invitaciones, filtros, tema y recuperación de contraseña en un navegador real. |
 
 Los de permisos son el corazón de la batería. Registran dos usuarios, uno monta
 su equipo con proyecto y tarea, y el otro intenta leerlo —incluso pidiendo la

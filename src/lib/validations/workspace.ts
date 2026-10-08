@@ -11,6 +11,8 @@ export const teamSchema = z.object({
     .trim()
     .min(2, { message: "El nombre del equipo necesita al menos 2 caracteres." })
     .max(60, { message: "El nombre no puede pasar de 60 caracteres." }),
+  // Un panel vacío no enseña nada, así que viene marcado por defecto.
+  conEjemplo: z.boolean().default(true),
 });
 
 export const projectSchema = z.object({
