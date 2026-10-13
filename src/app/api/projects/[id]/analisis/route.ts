@@ -46,7 +46,7 @@ export async function POST(
 
   // Antes de gastar cupo: sin clave no hay análisis posible.
   if (!process.env.ANTHROPIC_API_KEY) {
-    return fallo(503, "El análisis con IA no está activo en este entorno.");
+    return fallo(503, "El análisis con IA todavía está en desarrollo.");
   }
 
   // RLS solo devuelve el proyecto a quien es de su equipo; para cualquier

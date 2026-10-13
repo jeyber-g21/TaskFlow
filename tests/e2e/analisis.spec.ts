@@ -18,7 +18,7 @@ test.describe("análisis con IA", () => {
     expect(respuesta.status()).toBe(401);
   });
 
-  test("sin clave de la API, el tablero lo avisa en vez de fallar", async ({ page }) => {
+  test("sin clave de la API, el tablero lo presenta como en desarrollo", async ({ page }) => {
     test.skip(
       Boolean(process.env.ANTHROPIC_API_KEY),
       "Con clave configurada el análisis está activo.",
@@ -29,9 +29,9 @@ test.describe("análisis con IA", () => {
     await page.getByRole("link", { name: "Lanzamiento de la web" }).click();
 
     await expect(
-      page.getByRole("heading", { name: "Análisis con IA" }),
+      page.getByRole("heading", { name: /Análisis con IA/ }),
     ).toBeVisible();
-    await expect(page.getByText(/no está activo en este entorno/)).toBeVisible();
+    await expect(page.getByText("En desarrollo", { exact: true })).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Analizar tablero" }),
     ).toHaveCount(0);

@@ -69,7 +69,8 @@ La app queda en <http://localhost:3000>.
 > entorno falla a propósito al inicio, en vez de romperse más tarde.
 >
 > La clave de Anthropic (`ANTHROPIC_API_KEY`) es opcional. Sin ella todo
-> funciona igual y el tablero avisa de que el análisis con IA no está activo.
+> funciona igual y el tablero presenta el análisis con IA como función en
+> desarrollo, sin botón que falle.
 
 ### Scripts
 
@@ -200,8 +201,8 @@ drizzle/                  # migraciones SQL versionadas
   llega. Si la persona se va de la página, la petición se corta y Claude deja
   de generar, y de cobrar.
 - **La clave de Anthropic no sale del servidor.** Al navegador solo llega si
-  está configurada o no. Sin ella el tablero lo explica, en vez de mostrar un
-  botón que falla.
+  está configurada o no. Sin ella el tablero presenta el análisis como función
+  en desarrollo, en vez de mostrar un botón que falla.
 - **Los tests se escriben con cada fase, no al final.** Dejarlos para el cierre
   suele acabar en dos pruebas simbólicas escritas con prisa.
 

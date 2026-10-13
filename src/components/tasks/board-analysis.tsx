@@ -104,7 +104,10 @@ export function BoardAnalysis({
 
   let aviso: string | null = null;
   if (!configurado) {
-    aviso = "El análisis con IA no está activo en este entorno: falta la clave de la API de Anthropic.";
+    // Para quien visita la demo es una función que llega pronto; el detalle
+    // técnico (que falta la clave) está en el README.
+    aviso =
+      "Muy pronto, Claude podrá leer el tablero y decirte cómo va el proyecto, qué riesgos ve y qué haría después.";
   } else if (!hayTareas) {
     aviso = "Añade alguna tarea y podrás pedir un análisis del tablero.";
   }
@@ -120,8 +123,16 @@ export function BoardAnalysis({
             <Sparkles className="size-4" aria-hidden />
           </span>
           <div>
-            <h2 id="analisis-titulo" className="text-sm font-medium">
+            <h2
+              id="analisis-titulo"
+              className="flex items-center gap-2 text-sm font-medium"
+            >
               Análisis con IA
+              {!configurado && (
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                  En desarrollo
+                </span>
+              )}
             </h2>
             <p className="text-xs text-muted-foreground text-pretty">
               {aviso ??
