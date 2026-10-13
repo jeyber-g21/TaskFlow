@@ -154,6 +154,36 @@ export const tasks = pgTable(
   ],
 );
 
+/**
+ * Registro de cada análisis del tablero con IA.
+ *
+ * Existe para poner un límite diario por equipo: cada análisis es una llamada
+ * de pago a la API, y la demo es pública. No guarda el texto generado, solo
+ * cuándo y quién lo pidió. Las filas solo se crean desde
+ * `claim_board_analysis()`, que comprueba el límite en la misma operación.
+ */
+export const boardAnalyses = pgTable(
+  "board_analyses",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => profiles.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("board_analyses_team_created_idx").on(table.teamId, table.createdAt),
+  ],
+);
+
 export const profilesRelations = relations(profiles, ({ many }) => ({
   memberships: many(memberships),
   assignedTasks: many(tasks),

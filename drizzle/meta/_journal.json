@@ -50,6 +50,20 @@
       "when": 1790625297231,
       "tag": "0006_mis_invitaciones",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791915334298,
+      "tag": "0007_analisis_del_tablero",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791915349166,
+      "tag": "0008_limite_de_analisis",
+      "breakpoints": true
     }
   ]
 }

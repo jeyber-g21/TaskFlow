@@ -243,6 +243,61 @@ describeSiHayCredenciales("permisos a nivel de fila (RLS)", () => {
     });
   });
 
+  describe("límite de análisis con IA", () => {
+    it("un usuario ajeno no puede gastar el cupo de otro equipo", async () => {
+      const { error } = await bruno.cliente.rpc("claim_board_analysis", {
+        target_project_id: proyectoDeAna.id,
+      });
+
+      expect(error?.code).toBe("42501");
+    });
+
+    it("nadie puede apuntarse un análisis sin pasar por la función", async () => {
+      const { error } = await ana.cliente
+        .from("board_analyses")
+        .insert({ team_id: equipoDeAna, project_id: proyectoDeAna.id });
+
+      expect(error?.code).toBe("42501");
+    });
+
+    it("cuenta hacia atrás y corta al llegar a cinco", async () => {
+      const restantes: number[] = [];
+      for (let i = 0; i < 5; i++) {
+        const { data, error } = await ana.cliente.rpc("claim_board_analysis", {
+          target_project_id: proyectoDeAna.id,
+        });
+        if (error) throw new Error(`reserva ${i + 1} falló: ${error.message}`);
+        restantes.push(data);
+      }
+      expect(restantes).toEqual([4, 3, 2, 1, 0]);
+
+      const { error } = await ana.cliente.rpc("claim_board_analysis", {
+        target_project_id: proyectoDeAna.id,
+      });
+      // Código propio: el resto de errores no deben confundirse con este.
+      expect(error?.code).toBe("TF429");
+    });
+
+    it("borrar los análisis propios no devuelve cupo", async () => {
+      await ana.cliente.from("board_analyses").delete().eq("team_id", equipoDeAna);
+
+      const { count } = await ana.cliente
+        .from("board_analyses")
+        .select("id", { count: "exact", head: true })
+        .eq("team_id", equipoDeAna);
+      expect(count).toBe(5);
+    });
+
+    it("un usuario ajeno no ve los análisis de otro equipo", async () => {
+      const { data } = await bruno.cliente
+        .from("board_analyses")
+        .select("*")
+        .eq("team_id", equipoDeAna);
+
+      expect(data ?? []).toHaveLength(0);
+    });
+  });
+
   describe("sin sesión", () => {
     it("no se obtiene ningún dato", async () => {
       const anonimo = createClient(URL!, KEY!);

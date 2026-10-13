@@ -18,7 +18,7 @@ export type Responsable = {
 
 export type TareaConResponsable = Pick<
   Task,
-  "id" | "title" | "description" | "createdAt"
+  "id" | "title" | "description" | "createdAt" | "updatedAt"
 > & {
   estado: TaskStatusValue;
   prioridad: TaskPriorityValue;
@@ -44,7 +44,7 @@ export async function obtenerTareas(
 
   let consulta = supabase
     .from("tasks")
-    .select("id, title, description, status, priority, created_at, profiles(id, full_name)")
+    .select("id, title, description, status, priority, created_at, updated_at, profiles(id, full_name)")
     .eq("project_id", proyectoId);
 
   // Los filtros se aplican en Postgres y no en JavaScript: traerse todas las
@@ -83,6 +83,7 @@ export async function obtenerTareas(
       title: tarea.title,
       description: tarea.description,
       createdAt: new Date(tarea.created_at),
+      updatedAt: new Date(tarea.updated_at),
       estado: tarea.status as TaskStatusValue,
       prioridad: tarea.priority as TaskPriorityValue,
       responsable: perfil

@@ -1,7 +1,7 @@
 # TaskFlow
 
-Gestor de tareas para equipos pequeños: proyectos, tablero Kanban, roles y
-permisos aplicados en la propia base de datos.
+Gestor de tareas para equipos pequeños: proyectos, tablero Kanban, roles,
+permisos aplicados en la propia base de datos y un análisis del tablero con IA.
 
 > **Estado**: en construcción. Base, autenticación, modelo de datos con RLS y
 > batería de tests con integración continua. Ver [roadmap](#roadmap).
@@ -17,6 +17,10 @@ Los equipos de tres o cuatro personas necesitan saber quién hace qué y en qué
 estado está, pero las herramientas grandes piden más mantenimiento del que
 ahorran. TaskFlow se queda en lo esencial: equipos con roles, proyectos y un
 tablero de tres columnas con responsable y prioridad por tarea.
+
+Con un clic, Claude lee el tablero y cuenta cómo va el proyecto, qué riesgos
+ve —tareas urgentes sin dueño, trabajo parado, alguien desbordado— y qué haría
+a continuación. La respuesta se escribe en pantalla mientras se genera.
 
 ## Capturas
 
@@ -42,6 +46,7 @@ tarea, y filtros que viven en la URL.*
 | Base de datos | **Supabase (PostgreSQL)** | Postgres gestionado en tier gratuito, con panel visual y **Row Level Security** para aplicar permisos en la base de datos, no solo en la UI. |
 | Autenticación | **Supabase Auth** | Sesiones, registro y recuperación resueltos, integrados con las políticas RLS mediante `auth.uid()`. |
 | Acceso a datos | **Drizzle ORM** | Consultas tipadas de extremo a extremo y migraciones versionadas en el repo, en vez de cambios manuales en un panel. |
+| IA | **Claude Haiku 5.5** (SDK oficial de Anthropic) | Resumir un tablero es una tarea corta: Haiku responde en segundos y cuesta menos de una décima de céntimo por análisis, algo que importa en una demo pública. |
 | Validación | **Zod** | Un único esquema compartido: valida el formulario en el cliente y vuelve a validar en el servidor, donde sí importa. |
 | Hosting | **Vercel** | Despliegue automático en cada push y previews por rama. |
 
@@ -53,7 +58,7 @@ Requisitos: Node.js 20 o superior.
 git clone https://github.com/jeyber-g21/TaskFlow.git
 cd TaskFlow
 npm install
-cp .env.example .env.local   # rellena los valores de Supabase
+cp .env.example .env.local   # rellena los valores de Supabase (y, si quieres, la de Anthropic)
 npm run dev
 ```
 
@@ -62,6 +67,9 @@ La app queda en <http://localhost:3000>.
 > Necesitas un proyecto de Supabase (tier gratuito). Las claves están en
 > *Project Settings → API*. Sin ellas la app no arranca: la validación de
 > entorno falla a propósito al inicio, en vez de romperse más tarde.
+>
+> La clave de Anthropic (`ANTHROPIC_API_KEY`) es opcional. Sin ella todo
+> funciona igual y el tablero avisa de que el análisis con IA no está activo.
 
 ### Scripts
 
@@ -90,6 +98,7 @@ src/
 │   │   ├── bienvenida/   # creación del primer equipo
 │   │   ├── dashboard/    # proyectos del equipo
 │   │   └── projects/[id]/  # tablero Kanban del proyecto
+│   ├── api/projects/[id]/analisis/  # análisis con IA, en streaming
 │   ├── auth/callback/    # canjea el enlace de confirmación por una sesión
 │   └── layout.tsx        # fuentes, metadatos y shell de la app
 ├── components/
@@ -100,6 +109,7 @@ src/
 ├── lib/
 │   ├── supabase/         # clientes de navegador, servidor y proxy
 │   ├── db/schema.ts      # esquema de la base de datos (Drizzle)
+│   ├── analisis/         # prompt, formato y límite del análisis con IA
 │   ├── validations/      # esquemas Zod compartidos
 │   └── env.ts            # validación de variables de entorno
 └── proxy.ts              # refresco de sesión y guardia de rutas
@@ -169,6 +179,29 @@ drizzle/                  # migraciones SQL versionadas
   no recibir nunca el enlace. La ruta `/auth/callback` que canjea el código por
   una sesión sigue implementada, porque es la misma que usa la recuperación de
   contraseña y porque reactivar la confirmación es cambiar un interruptor.
+- **El análisis con IA tiene cupo, y lo cuenta Postgres.** Cada análisis es
+  una llamada de pago y la demo es pública, así que cada equipo tiene cinco
+  cada 24 horas. `claim_board_analysis()` comprueba el cupo y apunta el
+  análisis en la misma operación, con un bloqueo por equipo para que dos
+  peticiones simultáneas no se cuelen a la vez. La tabla no tiene políticas
+  de escritura: borrar los análisis propios no devuelve cupo.
+- **Las tareas llegan a la IA como datos, no como instrucciones.** Su texto
+  lo escribe cualquier miembro del equipo, así que va dentro de un bloque
+  delimitado, que una tarea no puede cerrar antes de tiempo, y el prompt avisa
+  de que su contenido no son órdenes. Ninguna defensa de este tipo es
+  infalible, pero el alcance también está acotado: la IA no tiene
+  herramientas ni acceso a datos, y lo que escribe solo lo ve el propio
+  equipo.
+- **La IA responde en texto plano, no en Markdown.** Con una estructura fija
+  de tres secciones, la interfaz lo pinta sin un intérprete de Markdown y sin
+  inyectar HTML generado por un modelo.
+- **El análisis es una ruta en streaming, no una Server Action.** Una acción
+  devuelve la respuesta entera de una vez; la ruta va enviando el texto según
+  llega. Si la persona se va de la página, la petición se corta y Claude deja
+  de generar, y de cobrar.
+- **La clave de Anthropic no sale del servidor.** Al navegador solo llega si
+  está configurada o no. Sin ella el tablero lo explica, en vez de mostrar un
+  botón que falla.
 - **Los tests se escriben con cada fase, no al final.** Dejarlos para el cierre
   suele acabar en dos pruebas simbólicas escritas con prisa.
 
@@ -178,9 +211,9 @@ Tres niveles, separados a propósito por lo que cuesta ejecutarlos:
 
 | Qué | Cuántos | Qué comprueban |
 |-----|---------|----------------|
-| **Unitarios** (Vitest) | 58 | Esquemas de validación y traducción de errores. Segundos, sin red. |
-| **Permisos** (Vitest) | 32 | RLS contra Supabase real: dos usuarios, uno intenta leer y escribir en el equipo del otro. |
-| **Recorridos** (Playwright) | 49 | Registro, equipo, proyectos, tablero, roles, invitaciones, filtros, tema y recuperación de contraseña en un navegador real. |
+| **Unitarios** (Vitest) | 70 | Esquemas de validación, traducción de errores y lo que se manda a la IA y cómo se pinta lo que devuelve. Segundos, sin red. |
+| **Permisos** (Vitest) | 37 | RLS contra Supabase real: dos usuarios, uno intenta leer y escribir en el equipo del otro. También el cupo de análisis con IA: corta al quinto y no se puede esquivar. |
+| **Recorridos** (Playwright) | 51 | Registro, equipo, proyectos, tablero, roles, invitaciones, filtros, análisis con IA, tema y recuperación de contraseña en un navegador real. |
 
 Los de permisos son el corazón de la batería. Registran dos usuarios, uno monta
 su equipo con proyecto y tarea, y el otro intenta leerlo —incluso pidiendo la

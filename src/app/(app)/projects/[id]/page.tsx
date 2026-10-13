@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Plus } from "lucide-react";
 
+import { BoardAnalysis } from "@/components/tasks/board-analysis";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { TaskDialog } from "@/components/tasks/task-dialog";
 import { TaskFilters } from "@/components/tasks/task-filters";
 import { Button } from "@/components/ui/button";
+import { analisisRestantes } from "@/lib/analisis/limite";
 import { obtenerMiembros, obtenerTareas } from "@/lib/queries/tasks";
 import { obtenerEquipoActual } from "@/lib/queries/workspace";
 import { createClient } from "@/lib/supabase/server";
@@ -49,9 +51,17 @@ export default async function ProyectoPage({
     notFound();
   }
 
-  const [tareas, miembros] = await Promise.all([
+  const hace24Horas = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  const [tareas, miembros, { count: analisisUsados }] = await Promise.all([
     obtenerTareas(proyecto.id, filtros),
     obtenerMiembros(equipo.id),
+    // Solo para mostrar cuántos quedan: el límite lo hace cumplir Postgres.
+    supabase
+      .from("board_analyses")
+      .select("id", { count: "exact", head: true })
+      .eq("team_id", equipo.id)
+      .gt("created_at", hace24Horas),
   ]);
 
   const hechas = tareas.filter((t) => t.estado === "done").length;
@@ -109,6 +119,15 @@ export default async function ProyectoPage({
           </Button>
         </TaskDialog>
       </div>
+
+      <BoardAnalysis
+        proyectoId={proyecto.id}
+        restantes={analisisRestantes(analisisUsados ?? 0)}
+        // La clave solo existe en el servidor; al navegador llega si está o no.
+        configurado={Boolean(process.env.ANTHROPIC_API_KEY)}
+        // Con filtros puede no verse ninguna y aun así haber tareas que analizar.
+        hayTareas={tareas.length > 0 || filtrando}
+      />
 
       <div className="mb-6 rounded-xl border border-border bg-card p-4">
         <TaskFilters filtros={filtros} miembros={miembros} />
