@@ -58,7 +58,8 @@ test.describe("tablero de tareas", () => {
     await expect(
       columna(page, "Por hacer").getByRole("heading", { name: "Definir las políticas" }),
     ).toBeVisible();
-    await expect(page.getByText("Alta")).toBeVisible();
+    // Exacto: sin esto también casa con "falta" en cualquier otro texto.
+    await expect(page.getByText("Alta", { exact: true })).toBeVisible();
 
     // --- mover a En progreso ---
     await page
